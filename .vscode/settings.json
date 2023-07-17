@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.rustfmt.extraArgs": ["+nightly"],
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 100,
+    "files.eol": "\n",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 5000
+}
