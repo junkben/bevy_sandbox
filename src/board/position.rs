@@ -3,15 +3,15 @@ use bevy::prelude::*;
 macro_rules! board_positions {
     ($($name:ident, $file:ident, $rank:ident);*) => {
         $(
-            pub const $name: SquareId = SquareId {
+            pub const $name: BoardPosition = BoardPosition {
                 file: File::$file,
                 rank: Rank::$rank
             };
         )*
 
-        //pub const BOARD_POSITIONS: [SquareId; 64] = [
-        //    $($name),*
-        //];
+        pub const BOARD_POSITIONS: [BoardPosition; 64] = [
+            $($name),*
+        ];
     };
 }
 
@@ -81,12 +81,6 @@ board_positions!(
     H7, H, Seven;
     H8, H, Eight
 );
-
-pub const CENTER_OF_BOARD: Vec3 = Vec3 {
-    x: 4.0,
-    y: 0.0,
-    z: 4.0
-};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 pub enum File {
@@ -192,26 +186,22 @@ impl std::fmt::Display for Rank {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct SquareId {
+#[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct BoardPosition {
     file: File,
     rank: Rank
 }
 
-impl std::fmt::Display for SquareId {
+impl std::fmt::Display for BoardPosition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}{}", self.file, self.rank)
     }
 }
 
-impl From<SquareId> for Vec3 {
-    fn from(value: SquareId) -> Self {
-        Vec3::from(value.file) + Vec3::from(value.rank)
-    }
-}
+impl BoardPosition {
+    pub fn vec3(&self) -> Vec3 { Vec3::from(self.file) + Vec3::from(self.rank) }
 
-impl From<SquareId> for Transform {
-    fn from(value: SquareId) -> Self {
-        Transform::from_translation(Vec3::from(value))
+    pub fn transform(&self) -> Transform {
+        Transform::from_translation(self.vec3())
     }
 }

@@ -2,9 +2,12 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use crate::{chess_piece::*, square::*};
+use crate::{
+    board::position::*,
+    piece::{color::PieceColor, *}
+};
 
-pub const INITIAL_BOARD_STATE: [(SquareId, Option<ChessPiece>); 64] = [
+pub const INITIAL_BOARD_STATE: [(BoardPosition, Option<Piece>); 64] = [
     (A8, Some(BLACK_ROOK)),
     (B8, Some(BLACK_KNIGHT)),
     (C8, Some(BLACK_BISHOP)),
@@ -100,7 +103,7 @@ impl Default for CastlingAvailability {
 }
 
 pub struct EnPassantTarget {
-    pub square: Option<SquareId>
+    pub square: Option<BoardPosition>
 }
 
 impl std::fmt::Display for EnPassantTarget {
@@ -114,8 +117,8 @@ impl std::fmt::Display for EnPassantTarget {
 
 #[derive(Resource)]
 pub struct BoardState {
-    pub piece_placement_map:   HashMap<SquareId, Option<ChessPiece>>,
-    pub active_color:          PColor,
+    pub piece_placement_map:   HashMap<BoardPosition, Option<Piece>>,
+    pub active_color:          PieceColor,
     pub castling_availability: CastlingAvailability,
     pub en_passant_target:     EnPassantTarget,
     pub halfmove_clock:        u32,
@@ -126,7 +129,7 @@ impl Default for BoardState {
     fn default() -> Self {
         Self {
             piece_placement_map:   HashMap::from(INITIAL_BOARD_STATE),
-            active_color:          PColor::White,
+            active_color:          PieceColor::White,
             castling_availability: CastlingAvailability::default(),
             en_passant_target:     EnPassantTarget { square: None },
             halfmove_clock:        0,

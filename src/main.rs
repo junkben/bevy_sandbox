@@ -1,15 +1,19 @@
 #[macro_use] extern crate strum;
 
-mod chess_piece;
+mod board;
+mod camera;
+mod light;
+mod piece;
 pub mod resources;
-mod setup;
-mod square;
 
 use bevy::{log::LogPlugin, prelude::*};
 use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_panorbit_camera::PanOrbitCameraPlugin;
+use board::BoardPlugin;
+use camera::ChessCameraPlugin;
+use light::ChessLightPlugin;
+use piece::PiecesPlugin;
 use resources::{board_state::BoardState, theme::Theme};
-use setup::*;
 
 fn main() {
     App::new()
@@ -20,18 +24,14 @@ fn main() {
         .insert_resource(Theme::Classy)
         // Set WindowDescriptor Resource to change title and size
         .add_plugins(DefaultPlugins.set(window_plugin()).set(log_plugin()))
-        .add_plugins(PanOrbitCameraPlugin)
-        .add_plugins(DefaultPickingPlugins)
-        .add_systems(
-            Startup,
-            (
-                spawn_board,
-                spawn_camera,
-                spawn_light,
-                spawn_pieces,
-                spawn_pickable
-            )
-        )
+        .add_plugins((
+            PanOrbitCameraPlugin,
+            DefaultPickingPlugins,
+            ChessCameraPlugin,
+            ChessLightPlugin,
+            PiecesPlugin,
+            BoardPlugin
+        ))
         .run();
 }
 

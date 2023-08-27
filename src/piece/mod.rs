@@ -1,13 +1,28 @@
-use bevy::prelude::{Color, *};
+pub mod color;
+mod movement;
+pub mod piece_type;
+pub mod select;
+mod spawn;
 
-use crate::{resources::theme::Theme, square::*};
+use bevy::prelude::*;
+
+use self::{color::PieceColor, piece_type::PieceType};
+use crate::{board::position::BoardPosition, resources::theme::Theme};
+
+pub struct PiecesPlugin;
+impl Plugin for PiecesPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, spawn::spawn_pieces)
+            .add_systems(Update, movement::move_pieces);
+    }
+}
 
 macro_rules! chess_pieces {
-    ($($name:ident, $color:ident, $piece:ident);*) => {
+    ($($name:ident, $color:ident, $piece_type:ident);*) => {
         $(
-            pub const $name: ChessPiece = ChessPiece {
-                color: PColor::$color,
-                piece: PType::$piece
+            pub const $name: Piece = Piece {
+                color: PieceColor::$color,
+                piece_type: PieceType::$piece_type
             };
         )*
     };
@@ -34,84 +49,24 @@ const SCALE: Vec3 = Vec3 {
     z: 0.012
 };
 
-pub enum PColor {
-    White,
-    Black
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub struct Piece {
+    color:      PieceColor,
+    piece_type: PieceType
 }
 
-impl std::fmt::Display for PColor {
+impl From<(PieceColor, PieceType)> for Piece {
+    fn from(value: (PieceColor, PieceType)) -> Self {
+        let (color, piece_type) = value;
+        Piece { color, piece_type }
+    }
+}
+
+impl std::fmt::Display for Piece {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use PColor::*;
-        write!(f, "{}", match self {
-            White => "w",
-            Black => "b"
-        })
-    }
-}
-
-impl PColor {
-    fn color(&self, theme: &Res<Theme>) -> Color {
-        use PColor::*;
-        match self {
-            White => theme.data().piece_white,
-            Black => theme.data().piece_black
-        }
-    }
-}
-
-pub enum PType {
-    King,
-    Queen,
-    Rook,
-    Bishop,
-    Knight,
-    Pawn
-}
-
-impl PType {
-    fn mesh_file_name(&self) -> &str {
-        use PType::*;
-        match self {
-            King => "king.glb#Mesh0/Primitive0",
-            Queen => "queen.glb#Mesh0/Primitive0",
-            Rook => "rook.glb#Mesh0/Primitive0",
-            Bishop => "bishop.glb#Mesh0/Primitive0",
-            Knight => "knight.glb#Mesh0/Primitive0",
-            Pawn => "pawn.glb#Mesh0/Primitive0"
-        }
-    }
-
-    fn mesh_offset(&self) -> Vec3 {
-        use PType::*;
-        let (x, y, z): (f32, f32, f32) = match self {
-            King => (0., 0., 0.),
-            Queen => (0., 0., 0.),
-            Rook => (0., 0., 0.),
-            Bishop => (0., 0., 0.),
-            Knight => (0., 0., 0.),
-            Pawn => (0., 0., 0.)
-        };
-        Vec3 { x, y, z }
-    }
-}
-
-pub struct ChessPiece {
-    color: PColor,
-    piece: PType
-}
-
-impl From<(PColor, PType)> for ChessPiece {
-    fn from(value: (PColor, PType)) -> Self {
-        let (color, piece) = value;
-        ChessPiece { color, piece }
-    }
-}
-
-impl std::fmt::Display for ChessPiece {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use PColor::*;
-        use PType::*;
-        write!(f, "{}", match (&self.color, &self.piece) {
+        use PieceColor::*;
+        use PieceType::*;
+        write!(f, "{}", match (&self.color, &self.piece_type) {
             (White, King) => 'K',
             (White, Queen) => 'Q',
             (White, Rook) => 'R',
@@ -129,11 +84,11 @@ impl std::fmt::Display for ChessPiece {
 }
 
 #[allow(dead_code)]
-impl ChessPiece {
+impl Piece {
     pub fn symbol(&self) -> &str {
-        use PColor::*;
-        use PType::*;
-        match (&self.color, &self.piece) {
+        use PieceColor::*;
+        use PieceType::*;
+        match (&self.color, &self.piece_type) {
             (White, King) => "♔",
             (White, Queen) => "♕",
             (White, Rook) => "♖",
@@ -150,7 +105,7 @@ impl ChessPiece {
     }
 
     fn mesh_handle(&self, asset_server: &Res<AssetServer>) -> Handle<Mesh> {
-        let path = format!("models/chess/{}", self.piece.mesh_file_name());
+        let path = format!("models/chess/{}", self.piece_type.mesh_file_name());
         asset_server.load(path.as_str())
     }
 
@@ -166,18 +121,17 @@ impl ChessPiece {
         })
     }
 
-    fn position(&self, board_position: SquareId) -> Vec3 {
-        self.piece.mesh_offset() + Vec3::from(board_position)
+    fn position(&self, board_position: BoardPosition) -> Vec3 {
+        self.piece_type.mesh_offset() + board_position.vec3()
     }
 
-    pub fn spawn(
+    pub fn pbr_bundle(
         &self,
-        commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        board_position: &SquareId,
+        board_position: &BoardPosition,
         theme: &Res<Theme>
-    ) {
+    ) -> PbrBundle {
         info!("spawning {}{}", self, &board_position);
 
         let mesh = self.mesh_handle(asset_server);
@@ -186,11 +140,11 @@ impl ChessPiece {
         let transform =
             Transform::from_translation(translation).with_scale(SCALE);
 
-        commands.spawn(PbrBundle {
+        PbrBundle {
             mesh,
             material,
             transform,
             ..default()
-        });
+        }
     }
 }
