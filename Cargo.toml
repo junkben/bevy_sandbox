@@ -10,3 +10,4 @@ bevy = "0.11"
 itertools = "0.11"
 strum = { version = "0.25", features = ["derive"] }
 bevy_panorbit_camera = "0.8"
+uuid = "1.4"

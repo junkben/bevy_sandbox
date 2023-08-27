@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use super::pieces::*;
-use crate::square::*;
+use crate::{chess_piece::*, square::*};
 
 pub const INITIAL_BOARD_STATE: [(SquareId, Option<ChessPiece>); 64] = [
     (A8, Some(BLACK_ROOK)),
@@ -73,10 +72,10 @@ pub const INITIAL_BOARD_STATE: [(SquareId, Option<ChessPiece>); 64] = [
 ];
 
 pub struct CastlingAvailability {
-    white_kingside:  bool,
-    white_queenside: bool,
-    black_kingside:  bool,
-    black_queenside: bool
+    pub white_kingside:  bool,
+    pub white_queenside: bool,
+    pub black_kingside:  bool,
+    pub black_queenside: bool
 }
 
 impl std::fmt::Display for CastlingAvailability {
@@ -101,7 +100,7 @@ impl Default for CastlingAvailability {
 }
 
 pub struct EnPassantTarget {
-    square: Option<SquareId>
+    pub square: Option<SquareId>
 }
 
 impl std::fmt::Display for EnPassantTarget {

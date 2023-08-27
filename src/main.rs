@@ -1,11 +1,14 @@
 #[macro_use] extern crate strum;
 
+mod chess_piece;
+pub mod resources;
 mod setup;
 mod square;
 
 use bevy::{log::LogPlugin, prelude::*};
 use bevy_panorbit_camera::PanOrbitCameraPlugin;
-use setup::{fen::BoardState, *};
+use resources::{board_state::BoardState, theme::Theme};
+use setup::*;
 
 fn main() {
     App::new()
@@ -13,17 +16,13 @@ fn main() {
         .insert_resource(Msaa::Sample4)
         // Grab initial boardstate
         .insert_resource(BoardState::default())
+        .insert_resource(Theme::Classy)
         // Set WindowDescriptor Resource to change title and size
         .add_plugins(DefaultPlugins.set(window_plugin()).set(log_plugin()))
         .add_plugins(PanOrbitCameraPlugin)
         .add_systems(
             Startup,
-            (
-                create_board,
-                create_camera,
-                create_light,
-                setup::create_pieces
-            )
+            (spawn_board, spawn_camera, spawn_light, spawn_pieces)
         )
         .run();
 }
