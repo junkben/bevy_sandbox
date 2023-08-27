@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_mod_picking::PickableBundle;
 use itertools::iproduct;
 use strum::IntoEnumIterator;
 
@@ -35,11 +36,14 @@ pub fn spawn_board(
             };
 
         // Spawn the chess square
-        commands.spawn(PbrBundle {
-            mesh: mesh.clone(),
-            material,
-            transform: Transform::from_translation(position),
-            ..default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh: mesh.clone(),
+                material,
+                transform: Transform::from_translation(position),
+                ..default()
+            },
+            PickableBundle::default()
+        ));
     }
 }

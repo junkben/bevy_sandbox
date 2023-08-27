@@ -6,6 +6,7 @@ mod setup;
 mod square;
 
 use bevy::{log::LogPlugin, prelude::*};
+use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_panorbit_camera::PanOrbitCameraPlugin;
 use resources::{board_state::BoardState, theme::Theme};
 use setup::*;
@@ -20,9 +21,16 @@ fn main() {
         // Set WindowDescriptor Resource to change title and size
         .add_plugins(DefaultPlugins.set(window_plugin()).set(log_plugin()))
         .add_plugins(PanOrbitCameraPlugin)
+        .add_plugins(DefaultPickingPlugins)
         .add_systems(
             Startup,
-            (spawn_board, spawn_camera, spawn_light, spawn_pieces)
+            (
+                spawn_board,
+                spawn_camera,
+                spawn_light,
+                spawn_pieces,
+                spawn_pickable
+            )
         )
         .run();
 }

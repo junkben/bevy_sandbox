@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_mod_picking::prelude::RaycastPickCamera;
 use bevy_panorbit_camera::PanOrbitCamera;
 
 use crate::square::CENTER_OF_BOARD;
@@ -10,6 +11,7 @@ pub fn spawn_camera(mut commands: Commands) {
                 .looking_at(CENTER_OF_BOARD, Vec3::Y),
             ..default()
         },
-        PanOrbitCamera::default()
+        PanOrbitCamera::default(),
+        RaycastPickCamera::default()
     ));
 }
