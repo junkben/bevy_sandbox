@@ -37,7 +37,9 @@ fn main() {
 
 fn log_plugin() -> LogPlugin {
     LogPlugin {
-        filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_sandbox=debug".into(),
+        filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_sandbox=debug,\
+                 bevy_mod_picking=warn,naga=warn"
+            .into(),
         level:  bevy::log::Level::DEBUG
     }
 }
