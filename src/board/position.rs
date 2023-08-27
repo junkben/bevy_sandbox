@@ -166,16 +166,16 @@ impl From<Rank> for Vec3 {
     fn from(value: Rank) -> Self {
         use Rank::*;
         let z = match value {
-            One => -1.0,
-            Two => -2.0,
-            Three => -3.0,
-            Four => -4.0,
-            Five => -5.0,
-            Six => -6.0,
-            Seven => -7.0,
-            Eight => -8.0
+            One => 1.0,
+            Two => 2.0,
+            Three => 3.0,
+            Four => 4.0,
+            Five => 5.0,
+            Six => 6.0,
+            Seven => 7.0,
+            Eight => 8.0
         };
-        Vec3::new(0.0, 0.0, z + 0.5)
+        Vec3::new(0.0, 0.0, -z + 0.5)
     }
 }
 
