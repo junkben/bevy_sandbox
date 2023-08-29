@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
-#[derive(Resource)]
+#[derive(Default, Resource)]
 pub enum Theme {
     BlackWhite,
+    #[default]
     Classy
 }
 

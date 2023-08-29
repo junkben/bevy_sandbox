@@ -6,37 +6,29 @@ mod light;
 mod piece;
 pub mod resources;
 
-use bevy::{log::LogPlugin, prelude::*};
-use bevy_mod_picking::DefaultPickingPlugins;
-use bevy_panorbit_camera::PanOrbitCameraPlugin;
-use board::BoardPlugin;
-use camera::ChessCameraPlugin;
-use light::ChessLightPlugin;
-use piece::PiecesPlugin;
-use resources::{board_state::BoardState, theme::Theme};
+use bevy::prelude::*;
 
 fn main() {
     App::new()
         // Set antialiasing to use 4 samples
         .insert_resource(Msaa::Sample4)
-        // Grab initial boardstate
-        .insert_resource(BoardState::default())
-        .insert_resource(Theme::Classy)
+        // Add resources first
+        .add_plugins(resources::ResourcesPlugin)
         // Set WindowDescriptor Resource to change title and size
         .add_plugins(DefaultPlugins.set(window_plugin()).set(log_plugin()))
         .add_plugins((
-            PanOrbitCameraPlugin,
-            DefaultPickingPlugins,
-            ChessCameraPlugin,
-            ChessLightPlugin,
-            PiecesPlugin,
-            BoardPlugin
+            bevy_panorbit_camera::PanOrbitCameraPlugin,
+            bevy_mod_picking::DefaultPickingPlugins,
+            camera::ChessCameraPlugin,
+            light::ChessLightPlugin,
+            piece::PiecesPlugin,
+            board::BoardPlugin
         ))
         .run();
 }
 
-fn log_plugin() -> LogPlugin {
-    LogPlugin {
+fn log_plugin() -> bevy::log::LogPlugin {
+    bevy::log::LogPlugin {
         filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_sandbox=debug,\
                  bevy_mod_picking=warn,naga=warn"
             .into(),

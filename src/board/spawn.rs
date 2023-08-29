@@ -1,63 +1,11 @@
 use bevy::{math::vec4, prelude::*};
 use bevy_mod_picking::prelude::*;
 
-use super::square::*;
+use super::{square::*, SquareBundle};
 use crate::{
     board::position::{BoardPosition, BOARD_POSITIONS},
-    resources::theme::Theme
+    resources::Theme
 };
-
-#[derive(Bundle)]
-struct SquareBundle {
-    square:              Square,
-    pbr_bundle:          PbrBundle,
-    board_position:      BoardPosition,
-    pickable_bundle:     PickableBundle,
-    raycast_pick_target: RaycastPickTarget
-}
-
-impl SquareBundle {
-    fn new(
-        square: Square,
-        pbr_bundle: PbrBundle,
-        board_position: BoardPosition
-    ) -> SquareBundle {
-        SquareBundle {
-            square,
-            pbr_bundle,
-            board_position,
-            pickable_bundle: PickableBundle::default(),
-            raycast_pick_target: RaycastPickTarget::default()
-        }
-    }
-}
-
-/// Change square color according to position to get alternating pattern
-fn determine_square(board_position: &BoardPosition) -> Square {
-    let position_vec = board_position.vec3();
-    if (position_vec.x as i32 + position_vec.z as i32) % 2 == 0 {
-        WHITE_SQUARE
-    } else {
-        BLACK_SQUARE
-    }
-}
-
-fn highlight() -> Highlight<StandardMaterial> {
-    Highlight {
-        hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.2, -0.2, 0.4, 0.0),
-            ..matl.to_owned()
-        })),
-        pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.3, -0.3, 0.5, 0.0),
-            ..matl.to_owned()
-        })),
-        selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.3, 0.2, -0.3, 0.0),
-            ..matl.to_owned()
-        }))
-    }
-}
 
 fn spawn_square(
     commands: &mut Commands,
@@ -93,5 +41,32 @@ pub fn spawn_board(
             &theme,
             board_position
         )
+    }
+}
+
+/// Change square color according to position to get alternating pattern
+fn determine_square(board_position: &BoardPosition) -> Square {
+    let position_vec = board_position.vec3();
+    if (position_vec.x as i32 + position_vec.z as i32) % 2 == 0 {
+        WHITE_SQUARE
+    } else {
+        BLACK_SQUARE
+    }
+}
+
+fn highlight() -> Highlight<StandardMaterial> {
+    Highlight {
+        hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+            base_color: matl.base_color + vec4(-0.2, -0.2, 0.4, 0.0),
+            ..matl.to_owned()
+        })),
+        pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+            base_color: matl.base_color + vec4(-0.3, -0.3, 0.5, 0.0),
+            ..matl.to_owned()
+        })),
+        selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+            base_color: matl.base_color + vec4(-0.3, 0.2, -0.3, 0.0),
+            ..matl.to_owned()
+        }))
     }
 }

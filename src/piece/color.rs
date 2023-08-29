@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-use crate::resources::theme::Theme;
+use crate::resources::Theme;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub enum PieceColor {
     White,
     Black

@@ -5,16 +5,28 @@ pub mod select;
 mod spawn;
 
 use bevy::prelude::*;
+use bevy_mod_picking::{prelude::RaycastPickTarget, PickableBundle};
 
 use self::{color::PieceColor, piece_type::PieceType};
-use crate::{board::position::BoardPosition, resources::theme::Theme};
+use crate::{board::position::BoardPosition, resources::Theme};
 
 pub struct PiecesPlugin;
 impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn::spawn_pieces)
-            .add_systems(Update, movement::move_pieces);
+        app.add_systems(Startup, spawn::spawn_pieces).add_systems(
+            Update,
+            (movement::move_pieces, select::toggle_piece_selectability)
+        );
     }
+}
+
+#[derive(Bundle)]
+pub struct PieceBundle {
+    pbr_bundle:          PbrBundle,
+    pickable_bundle:     PickableBundle,
+    raycast_pick_target: RaycastPickTarget,
+    board_position:      BoardPosition,
+    piece:               Piece
 }
 
 macro_rules! chess_pieces {
@@ -51,8 +63,8 @@ const SCALE: Vec3 = Vec3 {
 
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Piece {
-    color:      PieceColor,
-    piece_type: PieceType
+    pub color:      PieceColor,
+    pub piece_type: PieceType
 }
 
 impl From<(PieceColor, PieceType)> for Piece {

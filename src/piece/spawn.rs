@@ -1,17 +1,7 @@
-use bevy::prelude::*;
+use bevy::{math::vec4, prelude::*};
+use bevy_mod_picking::prelude::*;
 
-use crate::{
-    board::position::BoardPosition,
-    piece::Piece,
-    resources::{board_state::BoardState, theme::Theme}
-};
-
-#[derive(Bundle)]
-pub struct PieceBundle {
-    pbr_bundle:     PbrBundle,
-    board_position: BoardPosition,
-    piece:          Piece
-}
+use crate::resources::{BoardState, Theme};
 
 pub fn spawn_pieces(
     mut commands: Commands,
@@ -30,12 +20,31 @@ pub fn spawn_pieces(
                 &theme
             );
 
-            let piece_bundle = PieceBundle {
+            let piece_bundle = super::PieceBundle {
                 pbr_bundle,
                 board_position: board_position.clone(),
-                piece: piece.clone()
+                piece: piece.clone(),
+                pickable_bundle: PickableBundle::default(),
+                raycast_pick_target: RaycastPickTarget::default()
             };
-            commands.spawn(piece_bundle);
+            commands.spawn((piece_bundle, highlight()));
         }
+    }
+}
+
+fn highlight() -> Highlight<StandardMaterial> {
+    Highlight {
+        hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+            base_color: matl.base_color + vec4(-0.2, -0.2, 0.4, 0.0),
+            ..matl.to_owned()
+        })),
+        pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+            base_color: matl.base_color + vec4(-0.3, -0.3, 0.5, 0.0),
+            ..matl.to_owned()
+        })),
+        selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+            base_color: matl.base_color + vec4(-0.3, 0.2, -0.3, 0.0),
+            ..matl.to_owned()
+        }))
     }
 }
