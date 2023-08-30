@@ -5,6 +5,7 @@ mod camera;
 mod light;
 mod piece;
 pub mod resources;
+mod turn;
 
 use bevy::prelude::*;
 
@@ -19,6 +20,7 @@ fn main() {
         .add_plugins((
             bevy_panorbit_camera::PanOrbitCameraPlugin,
             bevy_mod_picking::DefaultPickingPlugins,
+            turn::TurnManagerPlugin,
             camera::ChessCameraPlugin,
             light::ChessLightPlugin,
             piece::PiecesPlugin,

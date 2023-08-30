@@ -199,6 +199,15 @@ impl std::fmt::Display for BoardPosition {
 }
 
 impl BoardPosition {
+    pub fn set(&mut self, rank: Rank, file: File) {
+        self.rank = rank;
+        self.file = file;
+    }
+
+    pub fn rank(&self) -> &Rank { &self.rank }
+
+    pub fn file(&self) -> &File { &self.file }
+
     pub fn vec3(&self) -> Vec3 { Vec3::from(self.file) + Vec3::from(self.rank) }
 
     pub fn transform(&self) -> Transform {

@@ -1,7 +1,6 @@
 pub mod color;
 mod movement;
 pub mod piece_type;
-pub mod select;
 mod spawn;
 
 use bevy::prelude::*;
@@ -13,10 +12,8 @@ use crate::{board::position::BoardPosition, resources::Theme};
 pub struct PiecesPlugin;
 impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn::spawn_pieces).add_systems(
-            Update,
-            (movement::move_pieces, select::toggle_piece_selectability)
-        );
+        app.add_systems(Startup, spawn::spawn_pieces)
+            .add_systems(Update, movement::move_pieces);
     }
 }
 

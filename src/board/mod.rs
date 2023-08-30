@@ -1,8 +1,7 @@
 mod color;
 pub mod position;
-pub mod select;
 mod spawn;
-mod square;
+pub mod square;
 
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
@@ -13,10 +12,7 @@ use crate::board::position::BoardPosition;
 pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(select::SelectedSquare::default())
-            .insert_resource(select::SelectedPiece::default())
-            .add_systems(Startup, spawn::spawn_board)
-            .add_systems(Update, select::select_square);
+        app.add_systems(Startup, spawn::spawn_board);
     }
 }
 

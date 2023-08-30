@@ -74,6 +74,7 @@ pub const INITIAL_BOARD_STATE: [(BoardPosition, Option<Piece>); 64] = [
     (H1, Some(WHITE_ROOK))
 ];
 
+#[derive(Debug)]
 pub struct CastlingAvailability {
     pub white_kingside:  bool,
     pub white_queenside: bool,
@@ -102,27 +103,21 @@ impl Default for CastlingAvailability {
     }
 }
 
-pub struct EnPassantTarget {
-    pub square: Option<BoardPosition>
-}
-
-impl std::fmt::Display for EnPassantTarget {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.square {
-            Some(id) => write!(f, "{id}"),
-            None => write!(f, "-")
-        }
-    }
-}
-
-#[derive(Resource)]
+#[derive(Resource, Debug)]
 pub struct BoardState {
     pub piece_placement_map:   HashMap<BoardPosition, Option<Piece>>,
+    /// Tracks whose turn it is. White always goes first.
     pub active_color:          PieceColor,
+    /// Tracks what players can castle and to what side
     pub castling_availability: CastlingAvailability,
-    pub en_passant_target:     EnPassantTarget,
+    /// Tracks whether or not there's a target for an en passant capture
+    pub en_passant_target:     Option<BoardPosition>,
+    /// The number of moves both players have made since the last pawn advance
+    /// or piece capture. Used to enforce the 50-move draw rule, where the
+    /// game ends in a draw after 100 half-moves
     pub halfmove_clock:        u32,
-    pub fullmove_num:          u32
+    /// Number is incremented by one every time Black moves, i.e. a "fullmove"
+    pub completed_turns:       u32
 }
 
 impl Default for BoardState {
@@ -131,9 +126,30 @@ impl Default for BoardState {
             piece_placement_map:   HashMap::from(INITIAL_BOARD_STATE),
             active_color:          PieceColor::White,
             castling_availability: CastlingAvailability::default(),
-            en_passant_target:     EnPassantTarget { square: None },
+            en_passant_target:     None,
             halfmove_clock:        0,
-            fullmove_num:          1
+            completed_turns:       1
         }
+    }
+}
+
+impl BoardState {
+    pub fn next_turn(&mut self) {
+        // If Black just moved, then we've completed one turn rotation
+        if self.active_color == PieceColor::Black {
+            self.completed_turns += 1;
+        }
+
+        // Every turn advances the halfmove clock
+        self.halfmove_clock += 1;
+
+        // Switch active color
+        use PieceColor::*;
+        self.active_color = match self.active_color {
+            White => Black,
+            Black => White
+        };
+
+        debug!(?self)
     }
 }
