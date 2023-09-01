@@ -213,7 +213,7 @@ impl AvailableMoves {
 }
 
 fn moves_rook(start: &'static BoardPosition) -> Vec<BoardPosition> {
-    let (f, r) = (start.file(), start.rank());
+    let (f, r) = (start.file, start.rank);
     let vertical_moves =
         Rank::iter().map(|rank| BoardPosition { file: f, rank });
     let horizontal_moves =

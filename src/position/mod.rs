@@ -24,10 +24,6 @@ impl std::fmt::Display for BoardPosition {
 }
 
 impl BoardPosition {
-    pub fn rank(&self) -> &Rank { &self.rank }
-
-    pub fn file(&self) -> &File { &self.file }
-
     pub fn xz(&self) -> (isize, isize) { <(isize, isize)>::from(*self) }
 
     pub fn iter() -> impl Iterator<Item = BoardPosition> {
