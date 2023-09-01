@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::board::{position::BoardPosition, square::Square};
+use crate::{board::square::Square, position::BoardPosition};
 
 #[derive(Resource, Debug, Default)]
 pub struct SelectedBoardPosition(pub Option<BoardPosition>);

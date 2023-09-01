@@ -7,7 +7,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::{prelude::RaycastPickTarget, PickableBundle};
 
 use self::{color::PieceColor, piece_type::PieceType};
-use crate::{board::position::BoardPosition, resources::Theme};
+use crate::{position::BoardPosition, resources::Theme};
 
 pub struct PiecesPlugin;
 impl Plugin for PiecesPlugin {
@@ -58,7 +58,7 @@ const SCALE: Vec3 = Vec3 {
     z: 0.012
 };
 
-#[derive(Component, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece {
     pub color:      PieceColor,
     pub piece_type: PieceType

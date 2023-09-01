@@ -1,9 +1,8 @@
-#[macro_use] extern crate strum;
-
 mod board;
 mod camera;
 mod light;
 mod piece;
+mod position;
 pub mod resources;
 mod turn;
 

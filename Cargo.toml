@@ -7,9 +7,8 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.11"
-itertools = "0.11"
-strum = { version = "0.25", features = ["derive"] }
 bevy_panorbit_camera = "0.8"
-uuid = { version = "1.4", features = ["v4"] }
 bevy_mod_picking = "0.15"
 bevy_eventlistener = "0.5"
+
+itertools = "0.11"

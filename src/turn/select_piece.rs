@@ -5,9 +5,7 @@ use bevy_mod_picking::{
 };
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::{
-    board::position::BoardPosition, piece::Piece, resources::BoardState
-};
+use crate::{piece::Piece, position::BoardPosition, resources::BoardState};
 
 pub struct SelectPiecePlugin;
 

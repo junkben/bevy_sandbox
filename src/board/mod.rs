@@ -1,5 +1,4 @@
 mod color;
-pub mod position;
 mod spawn;
 pub mod square;
 
@@ -7,7 +6,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use self::square::Square;
-use crate::board::position::BoardPosition;
+use crate::position::BoardPosition;
 
 pub struct BoardPlugin;
 impl Plugin for BoardPlugin {

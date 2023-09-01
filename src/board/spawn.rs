@@ -2,10 +2,7 @@ use bevy::{math::vec4, prelude::*};
 use bevy_mod_picking::prelude::*;
 
 use super::{square::*, SquareBundle};
-use crate::{
-    board::position::{BoardPosition, BOARD_POSITIONS},
-    resources::Theme
-};
+use crate::{position::BoardPosition, resources::Theme};
 
 fn spawn_square(
     commands: &mut Commands,
@@ -33,7 +30,7 @@ pub fn spawn_board(
     theme: Res<Theme>
 ) {
     // Spawn all board squares
-    for board_position in BOARD_POSITIONS {
+    for board_position in BoardPosition::iter() {
         spawn_square(
             &mut commands,
             &mut meshes,

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::Piece;
-use crate::board::position::BoardPosition;
+use crate::position::BoardPosition;
 
 pub fn move_pieces(
     time: Res<Time>,

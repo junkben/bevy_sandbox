@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PieceType {
     King,
     Queen,
