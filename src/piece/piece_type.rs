@@ -1,4 +1,12 @@
 use bevy::prelude::*;
+use PieceType::*;
+
+pub const KING: PieceType = King;
+pub const QUEEN: PieceType = Queen;
+pub const ROOK: PieceType = Rook;
+pub const BISHOP: PieceType = Bishop;
+pub const KNIGHT: PieceType = Knight;
+pub const PAWN: PieceType = Pawn;
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PieceType {
@@ -11,8 +19,7 @@ pub enum PieceType {
 }
 
 impl PieceType {
-    pub fn mesh_file_name(&self) -> &str {
-        use PieceType::*;
+    pub fn mesh_file_name(&self) -> &'static str {
         match self {
             King => "king.glb#Mesh0/Primitive0",
             Queen => "queen.glb#Mesh0/Primitive0",
@@ -24,7 +31,6 @@ impl PieceType {
     }
 
     pub fn mesh_offset(&self) -> Vec3 {
-        use PieceType::*;
         let (x, y, z): (f32, f32, f32) = match self {
             King => (0., 0., 0.),
             Queen => (0., 0., 0.),

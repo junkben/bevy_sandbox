@@ -6,7 +6,7 @@ mod spawn;
 use bevy::prelude::*;
 use bevy_mod_picking::{prelude::RaycastPickTarget, PickableBundle};
 
-use self::{color::PieceColor, piece_type::PieceType};
+use self::{color::*, piece_type::*};
 use crate::{position::BoardPosition, resources::Theme};
 
 pub struct PiecesPlugin;
@@ -30,26 +30,26 @@ macro_rules! chess_pieces {
     ($($name:ident, $color:ident, $piece_type:ident);*) => {
         $(
             pub const $name: Piece = Piece {
-                color: PieceColor::$color,
-                piece_type: PieceType::$piece_type
+                color: &$color,
+                piece_type: &$piece_type
             };
         )*
     };
 }
 
 chess_pieces!(
-    WHITE_KING, White, King;
-    WHITE_QUEEN, White, Queen;
-    WHITE_ROOK, White, Rook;
-    WHITE_BISHOP, White, Bishop;
-    WHITE_KNIGHT, White, Knight;
-    WHITE_PAWN, White, Pawn;
-    BLACK_KING, Black, King;
-    BLACK_QUEEN, Black, Queen;
-    BLACK_ROOK, Black, Rook;
-    BLACK_BISHOP, Black, Bishop;
-    BLACK_KNIGHT, Black, Knight;
-    BLACK_PAWN, Black, Pawn
+    WHITE_KING, WHITE, KING;
+    WHITE_QUEEN, WHITE, QUEEN;
+    WHITE_ROOK, WHITE, ROOK;
+    WHITE_BISHOP, WHITE, BISHOP;
+    WHITE_KNIGHT, WHITE, KNIGHT;
+    WHITE_PAWN, WHITE, PAWN;
+    BLACK_KING, BLACK, KING;
+    BLACK_QUEEN, BLACK, QUEEN;
+    BLACK_ROOK, BLACK, ROOK;
+    BLACK_BISHOP, BLACK, BISHOP;
+    BLACK_KNIGHT, BLACK, KNIGHT;
+    BLACK_PAWN, BLACK, PAWN
 );
 
 const SCALE: Vec3 = Vec3 {
@@ -60,15 +60,8 @@ const SCALE: Vec3 = Vec3 {
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece {
-    pub color:      PieceColor,
-    pub piece_type: PieceType
-}
-
-impl From<(PieceColor, PieceType)> for Piece {
-    fn from(value: (PieceColor, PieceType)) -> Self {
-        let (color, piece_type) = value;
-        Piece { color, piece_type }
-    }
+    color:      &'static PieceColor,
+    piece_type: &'static PieceType
 }
 
 impl std::fmt::Display for Piece {
@@ -94,7 +87,11 @@ impl std::fmt::Display for Piece {
 
 #[allow(dead_code)]
 impl Piece {
-    pub fn symbol(&self) -> &str {
+    pub fn piece_color(&self) -> &'static PieceColor { self.color }
+
+    pub fn piece_type(&self) -> &'static PieceType { self.piece_type }
+
+    pub fn symbol(&self) -> &'static str {
         use PieceColor::*;
         use PieceType::*;
         match (&self.color, &self.piece_type) {
@@ -141,7 +138,7 @@ impl Piece {
         board_position: &BoardPosition,
         theme: &Res<Theme>
     ) -> PbrBundle {
-        info!("spawning {}{}", self, &board_position);
+        info!("spawning {}{}", self, board_position);
 
         let mesh = self.mesh_handle(asset_server);
         let material = self.material_handle(materials, theme);

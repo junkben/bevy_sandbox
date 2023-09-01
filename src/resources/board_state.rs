@@ -213,15 +213,13 @@ impl AvailableMoves {
 }
 
 fn moves_rook(start: &'static BoardPosition) -> Vec<BoardPosition> {
-    let (f, r) = (start.file, start.rank);
-    let vertical_moves =
-        Rank::iter().map(|rank| BoardPosition { file: f, rank });
-    let horizontal_moves =
-        File::iter().map(|file| BoardPosition { file, rank: r });
+    let (f, r) = (start.file(), start.rank());
+    let vertical = BoardPosition::iter().filter(|bp| bp.file() == f);
+    let horizontal = BoardPosition::iter().filter(|bp| bp.rank() == r);
 
     let mut moves: Vec<BoardPosition> =
-        vertical_moves.chain(horizontal_moves).collect::<Vec<_>>();
-    moves.retain(|position| position == start);
+        vertical.chain(horizontal).collect::<Vec<_>>();
+    moves.retain(|position| position != start);
     moves
 }
 
@@ -265,37 +263,6 @@ const BISHOP_VECTORS: [(isize, isize); 28] = [
     (-5, -5),
     (-6, -6),
     (-7, -7)
-];
-
-const ROOK_VECTORS: [(isize, isize); 28] = [
-    (1, 0),
-    (2, 0),
-    (3, 0),
-    (4, 0),
-    (5, 0),
-    (6, 0),
-    (7, 0),
-    (-1, 0),
-    (-2, 0),
-    (-3, 0),
-    (-4, 0),
-    (-5, 0),
-    (-6, 0),
-    (-7, 0),
-    (0, 1),
-    (0, 2),
-    (0, 3),
-    (0, 4),
-    (0, 5),
-    (0, 6),
-    (0, 7),
-    (0, -1),
-    (0, -2),
-    (0, -3),
-    (0, -4),
-    (0, -5),
-    (0, -6),
-    (0, -7)
 ];
 
 const ROOK_CASTLE_KINGSIDE: (isize, isize) = (-2, 0);

@@ -7,8 +7,8 @@ pub use rank::Rank;
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoardPosition {
-    pub file: &'static File,
-    pub rank: &'static Rank
+    file: &'static File,
+    rank: &'static Rank
 }
 
 impl From<BoardPosition> for (isize, isize) {
@@ -24,6 +24,10 @@ impl std::fmt::Display for BoardPosition {
 }
 
 impl BoardPosition {
+    pub fn file(&self) -> &'static File { self.file }
+
+    pub fn rank(&self) -> &'static Rank { self.rank }
+
     pub fn xz(&self) -> (isize, isize) { <(isize, isize)>::from(*self) }
 
     pub fn iter() -> impl Iterator<Item = BoardPosition> {

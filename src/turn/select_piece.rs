@@ -57,7 +57,7 @@ fn enable_piece_selection(
 ) {
     // Give Selection components to pieces whose color matches the active one
     for (entity, piece) in nonpickable_query.iter() {
-        if board_state.active_color == piece.color {
+        if &board_state.active_color == piece.piece_color() {
             commands.entity(entity).insert((
                 PickSelection::default(),
                 RaycastPickTarget::default()

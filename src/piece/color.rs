@@ -1,6 +1,10 @@
 use bevy::prelude::*;
+use PieceColor::*;
 
 use crate::resources::Theme;
+
+pub const WHITE: PieceColor = White;
+pub const BLACK: PieceColor = Black;
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PieceColor {
@@ -8,19 +12,8 @@ pub enum PieceColor {
     Black
 }
 
-impl std::fmt::Display for PieceColor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use PieceColor::*;
-        write!(f, "{}", match self {
-            White => "w",
-            Black => "b"
-        })
-    }
-}
-
 impl PieceColor {
     pub fn color(&self, theme: &Res<Theme>) -> Color {
-        use PieceColor::*;
         match self {
             White => theme.data().piece_white,
             Black => theme.data().piece_black
