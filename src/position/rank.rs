@@ -10,7 +10,7 @@ pub const SEVEN: Rank = Rank::Seven;
 pub const EIGHT: Rank = Rank::Eight;
 pub const RANKS: [Rank; 8] = [EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO, ONE];
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Rank {
     One = 1,
     Two,
@@ -29,6 +29,10 @@ impl std::fmt::Display for Rank {
 }
 
 impl Rank {
+    pub fn try_from_isize(i: isize) -> Option<&'static Rank> {
+        Rank::iter().filter(|&r| r.isize() == i).next()
+    }
+
     pub fn char(&self) -> char {
         match self {
             Rank::One => '1',

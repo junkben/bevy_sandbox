@@ -1,13 +1,6 @@
 use bevy::prelude::*;
 use PieceType::*;
 
-pub const KING: PieceType = King;
-pub const QUEEN: PieceType = Queen;
-pub const ROOK: PieceType = Rook;
-pub const BISHOP: PieceType = Bishop;
-pub const KNIGHT: PieceType = Knight;
-pub const PAWN: PieceType = Pawn;
-
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PieceType {
     King,
@@ -19,6 +12,13 @@ pub enum PieceType {
 }
 
 impl PieceType {
+    pub const BISHOP: PieceType = Bishop;
+    pub const KING: PieceType = King;
+    pub const KNIGHT: PieceType = Knight;
+    pub const PAWN: PieceType = Pawn;
+    pub const QUEEN: PieceType = Queen;
+    pub const ROOK: PieceType = Rook;
+
     pub fn mesh_file_name(&self) -> &'static str {
         match self {
             King => "king.glb#Mesh0/Primitive0",

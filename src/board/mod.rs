@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use self::square::Square;
-use crate::position::BoardPosition;
+use crate::position::Position;
 
 pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
@@ -19,7 +19,7 @@ impl Plugin for BoardPlugin {
 struct SquareBundle {
     square:              Square,
     pbr_bundle:          PbrBundle,
-    board_position:      BoardPosition,
+    board_position:      Position,
     pickable_bundle:     PickableBundle,
     raycast_pick_target: RaycastPickTarget
 }
@@ -28,7 +28,7 @@ impl SquareBundle {
     pub fn new(
         square: Square,
         pbr_bundle: PbrBundle,
-        board_position: BoardPosition
+        board_position: Position
     ) -> SquareBundle {
         SquareBundle {
             square,

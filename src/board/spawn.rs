@@ -2,14 +2,14 @@ use bevy::{math::vec4, prelude::*};
 use bevy_mod_picking::prelude::*;
 
 use super::{square::*, SquareBundle};
-use crate::{position::BoardPosition, resources::Theme};
+use crate::{position::Position, resources::Theme};
 
 fn spawn_square(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     theme: &Res<Theme>,
-    board_position: BoardPosition
+    board_position: Position
 ) {
     let square: Square = determine_square(&board_position);
     let pbr_bundle =
@@ -30,7 +30,7 @@ pub fn spawn_board(
     theme: Res<Theme>
 ) {
     // Spawn all board squares
-    for board_position in BoardPosition::iter() {
+    for board_position in Position::iter() {
         spawn_square(
             &mut commands,
             &mut meshes,
@@ -42,7 +42,7 @@ pub fn spawn_board(
 }
 
 /// Change square color according to position to get alternating pattern
-fn determine_square(board_position: &BoardPosition) -> Square {
+fn determine_square(board_position: &Position) -> Square {
     let position_vec = board_position.vec3();
     if (position_vec.x as i32 + position_vec.z as i32) % 2 == 0 {
         WHITE_SQUARE

@@ -5,7 +5,7 @@ use bevy_mod_picking::{
 };
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::{piece::Piece, position::BoardPosition, resources::BoardState};
+use crate::{piece::Piece, position::Position, resources::BoardState};
 
 pub struct SelectPiecePlugin;
 
@@ -28,7 +28,7 @@ fn select_piece(
     mut turn_state: ResMut<NextState<TurnState>>,
     mut pending_move: ResMut<PendingMove>,
     mut piece_query: Query<
-        (Option<&PickingInteraction>, &BoardPosition),
+        (Option<&PickingInteraction>, &Position),
         With<Piece>
     >
 ) {
@@ -45,9 +45,11 @@ fn select_piece(
         }
 
         pending_move.start = Some(*board_position);
-        turn_state.set(TurnState::SelectDestinationSquare);
         break;
     }
+
+    debug!("moving to {:?}", TurnState::SelectDestinationSquare);
+    turn_state.set(TurnState::SelectDestinationSquare);
 }
 
 fn enable_piece_selection(

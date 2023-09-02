@@ -4,13 +4,20 @@ use bevy::prelude::*;
 use bevy_panorbit_camera::PanOrbitCamera;
 
 use super::TurnState;
-use crate::{piece::color::PieceColor, resources::BoardState};
+use crate::{
+    piece::color::PieceColor,
+    resources::{AvailableMoves, BoardState}
+};
 
 pub struct TurnStartPlugin;
 
 impl Plugin for TurnStartPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, move_camera.run_if(in_state(TurnState::Start)));
+        app.add_systems(OnEnter(TurnState::Start), calculate_available_moves)
+            .add_systems(
+                Update,
+                move_camera.run_if(in_state(TurnState::Start))
+            );
     }
 }
 
@@ -30,5 +37,14 @@ fn move_camera(
         Black => BLACK_ALPHA
     };
 
+    debug!("moving to {:?}", TurnState::SelectPiece);
     turn_state.set(TurnState::SelectPiece);
+}
+
+fn calculate_available_moves(
+    mut available_moves: ResMut<AvailableMoves>,
+    board_state: Res<BoardState>
+) {
+    available_moves.recalculate(&board_state.piece_placement_map);
+    info!("available_moves: [{}]", available_moves.list())
 }

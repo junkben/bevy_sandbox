@@ -12,10 +12,14 @@ pub use scoreboard::Scoreboard;
 mod theme;
 pub use theme::Theme;
 
+mod available_moves;
+pub use available_moves::AvailableMoves;
+
 pub struct ResourcesPlugin;
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(BoardState::default())
+        app.insert_resource(AvailableMoves::default())
+            .insert_resource(BoardState::default())
             .insert_resource(GameMode::default())
             .insert_resource(Scoreboard::default())
             .insert_resource(Theme::default());

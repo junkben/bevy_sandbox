@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::color::SquareColor;
-use crate::{position::BoardPosition, resources::Theme};
+use crate::{position::Position, resources::Theme};
 
 pub const WHITE_SQUARE: Square = Square {
     color: SquareColor::White
@@ -41,7 +41,7 @@ impl Square {
 
     fn mesh_offset(&self) -> Vec3 { Vec3::ZERO }
 
-    fn position(&self, board_position: BoardPosition) -> Vec3 {
+    fn position(&self, board_position: Position) -> Vec3 {
         self.mesh_offset() + board_position.vec3()
     }
 
@@ -49,7 +49,7 @@ impl Square {
         &self,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        board_position: &BoardPosition,
+        board_position: &Position,
         theme: &Res<Theme>
     ) -> PbrBundle {
         let size = SQUARE_SIZE;

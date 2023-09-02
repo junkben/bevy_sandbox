@@ -19,5 +19,7 @@ fn update_board_state(
     mut board_state: ResMut<BoardState>
 ) {
     board_state.next_turn();
+
+    debug!("moving to {:?}", TurnState::End);
     turn_state.set(TurnState::End);
 }

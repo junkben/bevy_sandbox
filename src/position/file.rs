@@ -10,7 +10,7 @@ pub const G: File = File::G;
 pub const H: File = File::H;
 pub const FILES: [File; 8] = [A, B, C, D, E, F, G, H];
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum File {
     A = 1,
     B,
@@ -29,6 +29,10 @@ impl std::fmt::Display for File {
 }
 
 impl File {
+    pub fn try_from_isize(i: isize) -> Option<&'static File> {
+        File::iter().filter(|&f| f.isize() == i).next()
+    }
+
     pub fn char(&self) -> char {
         match self {
             File::A => 'a',

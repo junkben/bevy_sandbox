@@ -11,5 +11,6 @@ impl Plugin for EndTurnPlugin {
 }
 
 fn end_turn(mut turn_state: ResMut<NextState<TurnState>>) {
+    debug!("moving to {:?}", TurnState::Start);
     turn_state.set(TurnState::Start);
 }

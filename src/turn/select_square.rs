@@ -2,10 +2,10 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::{board::square::Square, position::BoardPosition};
+use crate::{board::square::Square, position::Position};
 
 #[derive(Resource, Debug, Default)]
-pub struct SelectedBoardPosition(pub Option<BoardPosition>);
+pub struct SelectedBoardPosition(pub Option<Position>);
 
 pub struct SelectSquarePlugin;
 
@@ -33,7 +33,7 @@ pub fn select_square(
     mut turn_state: ResMut<NextState<TurnState>>,
     mut pending_move: ResMut<PendingMove>,
     mut square_query: Query<
-        (Option<&PickingInteraction>, &BoardPosition),
+        (Option<&PickingInteraction>, &Position),
         With<Square>
     >
 ) {
@@ -50,9 +50,11 @@ pub fn select_square(
         }
 
         pending_move.end = Some(*board_position);
-        turn_state.set(TurnState::MovePiece);
         break;
     }
+
+    debug!("moving to {:?}", TurnState::MovePiece);
+    turn_state.set(TurnState::MovePiece);
 }
 
 fn enable_square_selection(

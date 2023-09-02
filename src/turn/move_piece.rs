@@ -1,16 +1,16 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::{piece::Piece, position::BoardPosition};
+use crate::{piece::Piece, position::Position};
 
 #[derive(Resource, Default)]
 pub struct PendingMove {
-    pub start: Option<BoardPosition>,
-    pub end:   Option<BoardPosition>
+    pub start: Option<Position>,
+    pub end:   Option<Position>
 }
 
 impl PendingMove {
-    fn ready(&self) -> Option<(&BoardPosition, &BoardPosition)> {
+    fn ready(&self) -> Option<(&Position, &Position)> {
         self.start.as_ref().zip(self.end.as_ref())
     }
 }
@@ -32,7 +32,7 @@ fn move_piece(
     time: Res<Time>,
     mut turn_state: ResMut<NextState<TurnState>>,
     pending_move: Res<PendingMove>,
-    mut piece_query: Query<(&mut Transform, &BoardPosition), With<Piece>>
+    mut piece_query: Query<(&mut Transform, &Position), With<Piece>>
 ) {
     if let Some((start, end)) = pending_move.ready() {
         for (mut transform, mut position) in piece_query.iter_mut() {
@@ -47,9 +47,13 @@ fn move_piece(
                 debug!(?transform)
             } else {
                 transform.translation = end.vec3();
+
+                // Don't think this is needed anymore
                 // position.set(*end.rank(), *end.file());
+
+                debug!("moving to {:?}", TurnState::Start);
                 turn_state.set(TurnState::UpdateBoardState);
-                debug!(?turn_state)
+                break;
             }
         }
     }

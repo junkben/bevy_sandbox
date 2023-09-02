@@ -1,5 +1,5 @@
 pub mod color;
-mod movement;
+pub mod movement;
 pub mod piece_type;
 mod spawn;
 
@@ -7,7 +7,18 @@ use bevy::prelude::*;
 use bevy_mod_picking::{prelude::RaycastPickTarget, PickableBundle};
 
 use self::{color::*, piece_type::*};
-use crate::{position::BoardPosition, resources::Theme};
+use crate::{position::Position, resources::Theme};
+
+macro_rules! chess_pieces {
+    ($($name:ident, $color:ident, $piece_type:ident);*) => {
+        $(
+            pub const $name: Piece = Piece {
+                color: &PieceColor::$color,
+                piece_type: &PieceType::$piece_type
+            };
+        )*
+    };
+}
 
 pub struct PiecesPlugin;
 impl Plugin for PiecesPlugin {
@@ -22,35 +33,9 @@ pub struct PieceBundle {
     pbr_bundle:          PbrBundle,
     pickable_bundle:     PickableBundle,
     raycast_pick_target: RaycastPickTarget,
-    board_position:      BoardPosition,
+    board_position:      Position,
     piece:               Piece
 }
-
-macro_rules! chess_pieces {
-    ($($name:ident, $color:ident, $piece_type:ident);*) => {
-        $(
-            pub const $name: Piece = Piece {
-                color: &$color,
-                piece_type: &$piece_type
-            };
-        )*
-    };
-}
-
-chess_pieces!(
-    WHITE_KING, WHITE, KING;
-    WHITE_QUEEN, WHITE, QUEEN;
-    WHITE_ROOK, WHITE, ROOK;
-    WHITE_BISHOP, WHITE, BISHOP;
-    WHITE_KNIGHT, WHITE, KNIGHT;
-    WHITE_PAWN, WHITE, PAWN;
-    BLACK_KING, BLACK, KING;
-    BLACK_QUEEN, BLACK, QUEEN;
-    BLACK_ROOK, BLACK, ROOK;
-    BLACK_BISHOP, BLACK, BISHOP;
-    BLACK_KNIGHT, BLACK, KNIGHT;
-    BLACK_PAWN, BLACK, PAWN
-);
 
 const SCALE: Vec3 = Vec3 {
     x: 0.012,
@@ -87,6 +72,21 @@ impl std::fmt::Display for Piece {
 
 #[allow(dead_code)]
 impl Piece {
+    chess_pieces!(
+        WHITE_KING, WHITE, KING;
+        WHITE_QUEEN, WHITE, QUEEN;
+        WHITE_ROOK, WHITE, ROOK;
+        WHITE_BISHOP, WHITE, BISHOP;
+        WHITE_KNIGHT, WHITE, KNIGHT;
+        WHITE_PAWN, WHITE, PAWN;
+        BLACK_KING, BLACK, KING;
+        BLACK_QUEEN, BLACK, QUEEN;
+        BLACK_ROOK, BLACK, ROOK;
+        BLACK_BISHOP, BLACK, BISHOP;
+        BLACK_KNIGHT, BLACK, KNIGHT;
+        BLACK_PAWN, BLACK, PAWN
+    );
+
     pub fn piece_color(&self) -> &'static PieceColor { self.color }
 
     pub fn piece_type(&self) -> &'static PieceType { self.piece_type }
@@ -127,7 +127,7 @@ impl Piece {
         })
     }
 
-    fn position(&self, board_position: BoardPosition) -> Vec3 {
+    fn position(&self, board_position: Position) -> Vec3 {
         self.piece_type.mesh_offset() + board_position.vec3()
     }
 
@@ -135,7 +135,7 @@ impl Piece {
         &self,
         asset_server: &Res<AssetServer>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        board_position: &BoardPosition,
+        board_position: &Position,
         theme: &Res<Theme>
     ) -> PbrBundle {
         info!("spawning {}{}", self, board_position);
