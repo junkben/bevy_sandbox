@@ -195,7 +195,7 @@ pub fn move_pieces(
 ) {
     for (_p, bp, mut t) in query.iter_mut() {
         // Get the direction to move in
-        let move_vec = bp.vec3() - t.translation;
+        let move_vec = bp.translation() - t.translation;
 
         // Only move if the piece isn't already there (distance is big)
         if move_vec.length() > 0.1 {

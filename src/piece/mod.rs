@@ -13,8 +13,8 @@ macro_rules! chess_pieces {
     ($($name:ident, $color:ident, $piece_type:ident);*) => {
         $(
             pub const $name: Piece = Piece {
-                color: &PieceColor::$color,
-                piece_type: &PieceType::$piece_type
+                color: PieceColor::$color,
+                piece_type: PieceType::$piece_type
             };
         )*
     };
@@ -45,8 +45,8 @@ const SCALE: Vec3 = Vec3 {
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece {
-    color:      &'static PieceColor,
-    piece_type: &'static PieceType
+    color:      PieceColor,
+    piece_type: PieceType
 }
 
 impl std::fmt::Display for Piece {
@@ -87,9 +87,9 @@ impl Piece {
         BLACK_PAWN, BLACK, PAWN
     );
 
-    pub fn piece_color(&self) -> &'static PieceColor { self.color }
+    pub fn piece_color(&self) -> &PieceColor { &self.color }
 
-    pub fn piece_type(&self) -> &'static PieceType { self.piece_type }
+    pub fn piece_type(&self) -> &PieceType { &self.piece_type }
 
     pub fn symbol(&self) -> &'static str {
         use PieceColor::*;
@@ -127,8 +127,8 @@ impl Piece {
         })
     }
 
-    fn position(&self, board_position: Position) -> Vec3 {
-        self.piece_type.mesh_offset() + board_position.vec3()
+    fn translation(&self, board_position: Position) -> Vec3 {
+        self.piece_type.mesh_translation_offset() + board_position.translation()
     }
 
     pub fn pbr_bundle(
@@ -142,7 +142,7 @@ impl Piece {
 
         let mesh = self.mesh_handle(asset_server);
         let material = self.material_handle(materials, theme);
-        let translation = self.position(board_position.clone());
+        let translation = self.translation(board_position.clone());
         let transform =
             Transform::from_translation(translation).with_scale(SCALE);
 

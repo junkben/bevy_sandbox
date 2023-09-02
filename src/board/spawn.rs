@@ -9,14 +9,15 @@ fn spawn_square(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     theme: &Res<Theme>,
-    board_position: Position
+    board_position: &Position
 ) {
     let square: Square = determine_square(&board_position);
     let pbr_bundle =
-        square.pbr_bundle(meshes, materials, &board_position, &theme);
+        square.pbr_bundle(meshes, materials, board_position, &theme);
 
     // Assemble the square bundle
-    let square_bundle = SquareBundle::new(square, pbr_bundle, board_position);
+    let square_bundle =
+        SquareBundle::new(square, pbr_bundle, board_position.clone());
     let highlight = highlight();
 
     // Spawn the square bundle
@@ -43,8 +44,8 @@ pub fn spawn_board(
 
 /// Change square color according to position to get alternating pattern
 fn determine_square(board_position: &Position) -> Square {
-    let position_vec = board_position.vec3();
-    if (position_vec.x as i32 + position_vec.z as i32) % 2 == 0 {
+    let (x, z) = board_position.xz();
+    if (x + z) % 2 == 0 {
         WHITE_SQUARE
     } else {
         BLACK_SQUARE

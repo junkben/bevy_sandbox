@@ -45,6 +45,7 @@ fn calculate_available_moves(
     mut available_moves: ResMut<AvailableMoves>,
     board_state: Res<BoardState>
 ) {
+    debug!(?board_state.piece_placement_map);
     available_moves.recalculate(&board_state.piece_placement_map);
     info!("available_moves: [{}]", available_moves.list())
 }

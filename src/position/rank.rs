@@ -1,25 +1,15 @@
 use bevy::prelude::*;
 
-pub const ONE: Rank = Rank::One;
-pub const TWO: Rank = Rank::Two;
-pub const THREE: Rank = Rank::Three;
-pub const FOUR: Rank = Rank::Four;
-pub const FIVE: Rank = Rank::Five;
-pub const SIX: Rank = Rank::Six;
-pub const SEVEN: Rank = Rank::Seven;
-pub const EIGHT: Rank = Rank::Eight;
-pub const RANKS: [Rank; 8] = [EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO, ONE];
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Rank {
-    One = 1,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight
+    _One = 1,
+    _Two,
+    _Three,
+    _Four,
+    _Five,
+    _Six,
+    _Seven,
+    _Eight
 }
 
 impl std::fmt::Display for Rank {
@@ -29,29 +19,50 @@ impl std::fmt::Display for Rank {
 }
 
 impl Rank {
-    pub fn try_from_isize(i: isize) -> Option<&'static Rank> {
-        Rank::iter().filter(|&r| r.isize() == i).next()
+    pub const EIGHT: Rank = Rank::_Eight;
+    pub const FIVE: Rank = Rank::_Five;
+    pub const FOUR: Rank = Rank::_Four;
+    pub const ONE: Rank = Rank::_One;
+    pub const SEVEN: Rank = Rank::_Seven;
+    pub const SIX: Rank = Rank::_Six;
+    pub const THREE: Rank = Rank::_Three;
+    pub const TWO: Rank = Rank::_Two;
+
+    pub fn try_from_isize(i: isize) -> Option<Rank> {
+        Rank::iter().filter(|&r| r.isize() == i).next().copied()
     }
 
     pub fn char(&self) -> char {
         match self {
-            Rank::One => '1',
-            Rank::Two => '2',
-            Rank::Three => '3',
-            Rank::Four => '4',
-            Rank::Five => '5',
-            Rank::Six => '6',
-            Rank::Seven => '7',
-            Rank::Eight => '8'
+            Rank::_One => '1',
+            Rank::_Two => '2',
+            Rank::_Three => '3',
+            Rank::_Four => '4',
+            Rank::_Five => '5',
+            Rank::_Six => '6',
+            Rank::_Seven => '7',
+            Rank::_Eight => '8'
         }
     }
 
     pub fn isize(&self) -> isize { self as *const _ as isize }
 
-    pub fn vec3(&self) -> Vec3 {
+    pub fn translation(&self) -> Vec3 {
         let z = self.isize() as f32;
         Vec3::new(0.0, 0.0, -z + 0.5)
     }
 
-    pub fn iter() -> impl Iterator<Item = &'static Rank> { RANKS.iter() }
+    pub fn iter() -> impl Iterator<Item = &'static Rank> {
+        [
+            Rank::EIGHT,
+            Rank::SEVEN,
+            Rank::SIX,
+            Rank::FIVE,
+            Rank::FOUR,
+            Rank::THREE,
+            Rank::TWO,
+            Rank::ONE
+        ]
+        .iter()
+    }
 }

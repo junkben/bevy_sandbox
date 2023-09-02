@@ -7,8 +7,8 @@ pub use rank::Rank;
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Position {
-    file: &'static File,
-    rank: &'static Rank
+    file: File,
+    rank: Rank
 }
 
 impl From<Position> for (isize, isize) {
@@ -27,79 +27,83 @@ macro_rules! positions {
     ($($name:ident, $file:ident, $rank:ident);*) => {
         $(
             pub const $name: Position = Position {
-                file: &File::$file,
-                rank: &Rank::$rank
+                file: File::$file,
+                rank: Rank::$rank
             };
         )*
+
+        pub const ALL: [Position; 64] = [
+            $(Position::$name),*
+        ];
     }
 }
 
 impl Position {
     positions!(
-        A8, A, Eight;
-        B8, B, Eight;
-        C8, C, Eight;
-        D8, D, Eight;
-        E8, E, Eight;
-        F8, F, Eight;
-        G8, G, Eight;
-        H8, H, Eight;
-        A7, A, Seven;
-        B7, B, Seven;
-        C7, C, Seven;
-        D7, D, Seven;
-        E7, E, Seven;
-        F7, F, Seven;
-        G7, G, Seven;
-        H7, H, Seven;
-        A6, A, Six;
-        B6, B, Six;
-        C6, C, Six;
-        D6, D, Six;
-        E6, E, Six;
-        F6, F, Six;
-        G6, G, Six;
-        H6, H, Six;
-        A5, A, Five;
-        B5, B, Five;
-        C5, C, Five;
-        D5, D, Five;
-        E5, E, Five;
-        F5, F, Five;
-        G5, G, Five;
-        H5, H, Five;
-        A4, A, Four;
-        B4, B, Four;
-        C4, C, Four;
-        D4, D, Four;
-        E4, E, Four;
-        F4, F, Four;
-        G4, G, Four;
-        H4, H, Four;
-        A3, A, Three;
-        B3, B, Three;
-        C3, C, Three;
-        D3, D, Three;
-        E3, E, Three;
-        F3, F, Three;
-        G3, G, Three;
-        H3, H, Three;
-        A2, A, Two;
-        B2, B, Two;
-        C2, C, Two;
-        D2, D, Two;
-        E2, E, Two;
-        F2, F, Two;
-        G2, G, Two;
-        H2, H, Two;
-        A1, A, One;
-        B1, B, One;
-        C1, C, One;
-        D1, D, One;
-        E1, E, One;
-        F1, F, One;
-        G1, G, One;
-        H1, H, One
+        A8, A, EIGHT;
+        B8, B, EIGHT;
+        C8, C, EIGHT;
+        D8, D, EIGHT;
+        E8, E, EIGHT;
+        F8, F, EIGHT;
+        G8, G, EIGHT;
+        H8, H, EIGHT;
+        A7, A, SEVEN;
+        B7, B, SEVEN;
+        C7, C, SEVEN;
+        D7, D, SEVEN;
+        E7, E, SEVEN;
+        F7, F, SEVEN;
+        G7, G, SEVEN;
+        H7, H, SEVEN;
+        A6, A, SIX;
+        B6, B, SIX;
+        C6, C, SIX;
+        D6, D, SIX;
+        E6, E, SIX;
+        F6, F, SIX;
+        G6, G, SIX;
+        H6, H, SIX;
+        A5, A, FIVE;
+        B5, B, FIVE;
+        C5, C, FIVE;
+        D5, D, FIVE;
+        E5, E, FIVE;
+        F5, F, FIVE;
+        G5, G, FIVE;
+        H5, H, FIVE;
+        A4, A, FOUR;
+        B4, B, FOUR;
+        C4, C, FOUR;
+        D4, D, FOUR;
+        E4, E, FOUR;
+        F4, F, FOUR;
+        G4, G, FOUR;
+        H4, H, FOUR;
+        A3, A, THREE;
+        B3, B, THREE;
+        C3, C, THREE;
+        D3, D, THREE;
+        E3, E, THREE;
+        F3, F, THREE;
+        G3, G, THREE;
+        H3, H, THREE;
+        A2, A, TWO;
+        B2, B, TWO;
+        C2, C, TWO;
+        D2, D, TWO;
+        E2, E, TWO;
+        F2, F, TWO;
+        G2, G, TWO;
+        H2, H, TWO;
+        A1, A, ONE;
+        B1, B, ONE;
+        C1, C, ONE;
+        D1, D, ONE;
+        E1, E, ONE;
+        F1, F, ONE;
+        G1, G, ONE;
+        H1, H, ONE
     );
 
     pub fn try_from_xz(x: isize, z: isize) -> Option<Position> {
@@ -116,14 +120,14 @@ impl Position {
         Position::try_from_xz(vector.x as isize, vector.z as isize)
     }
 
-    pub fn file(&self) -> &'static File { self.file }
+    pub fn file(&self) -> &File { &self.file }
 
-    pub fn rank(&self) -> &'static Rank { self.rank }
+    pub fn rank(&self) -> &Rank { &self.rank }
 
     pub fn xz(&self) -> (isize, isize) { <(isize, isize)>::from(*self) }
 
-    pub fn iter() -> impl Iterator<Item = Position> {
-        Self::iter_rank_file().map(|(rank, file)| Position { file, rank })
+    pub fn iter() -> impl Iterator<Item = &'static Position> {
+        Self::ALL.iter()
     }
 
     pub fn iter_rank_file(
@@ -135,9 +139,11 @@ impl Position {
         Self::iter_rank_file().map(|(&r, &f)| (r as isize, f as isize))
     }
 
-    pub fn vec3(&self) -> Vec3 { self.file.vec3() + self.rank.vec3() }
+    pub fn translation(&self) -> Vec3 {
+        self.file.translation() + self.rank.translation()
+    }
 
     pub fn transform(&self) -> Transform {
-        Transform::from_translation(self.vec3())
+        Transform::from_translation(self.translation())
     }
 }

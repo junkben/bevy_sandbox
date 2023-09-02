@@ -39,10 +39,10 @@ impl Square {
         })
     }
 
-    fn mesh_offset(&self) -> Vec3 { Vec3::ZERO }
+    fn mesh_translation_offset(&self) -> Vec3 { Vec3::ZERO }
 
-    fn position(&self, board_position: Position) -> Vec3 {
-        self.mesh_offset() + board_position.vec3()
+    fn translation(&self, board_position: Position) -> Vec3 {
+        self.mesh_translation_offset() + board_position.translation()
     }
 
     pub fn pbr_bundle(
@@ -55,7 +55,7 @@ impl Square {
         let size = SQUARE_SIZE;
         let mesh = self.mesh_handle(meshes, size);
         let material = self.material_handle(materials, theme);
-        let translation = self.position(board_position.clone());
+        let translation = self.translation(board_position.clone());
         let transform =
             Transform::from_translation(translation).with_scale(SCALE);
 

@@ -30,7 +30,7 @@ impl PieceType {
         }
     }
 
-    pub fn mesh_offset(&self) -> Vec3 {
+    pub fn mesh_translation_offset(&self) -> Vec3 {
         let (x, y, z): (f32, f32, f32) = match self {
             King => (0., 0., 0.),
             Queen => (0., 0., 0.),

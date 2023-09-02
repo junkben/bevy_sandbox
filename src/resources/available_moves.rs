@@ -21,9 +21,10 @@ impl std::fmt::Display for AvailableMoves {
 impl AvailableMoves {
     pub fn list(&self) -> String {
         let mut strings: Vec<String> = vec![];
-        for ((piece, _), moves) in &self.0 {
+        for ((piece, start), moves) in self.0.clone() {
             for m in moves {
-                strings.push(format!("{piece}{m}"));
+                info!("{} @ {} => {}", piece, start, m);
+                // strings.push(format!("{piece}@{start} => {m}"));
             }
         }
         strings.join(", ")
@@ -33,8 +34,7 @@ impl AvailableMoves {
         &mut self,
         piece_map: &HashMap<Position, Option<Piece>>
     ) {
-        let mut hashmap: HashMap<(Piece, Position), Vec<Position>> =
-            HashMap::new();
+        self.0 = HashMap::new();
 
         for (start, piece_opt) in piece_map.clone() {
             if piece_opt.is_none() {
@@ -55,14 +55,14 @@ impl AvailableMoves {
                     (Black, Pawn) => PieceMovementBehavior::PAWN_BLACK
                 };
 
-            let start_vec = start.vec3();
+            let (start_x, start_z) = start.xz();
+            let start_vec = Vec3::new(start_x as f32, 0.0, start_z as f32);
             let mut moves: Vec<Position> = Vec::new();
 
-            for at_direction in movement_pattern.directions() {
-                let direction = Vec3 { ..*at_direction };
+            for direction in movement_pattern.directions() {
                 let mut l = 1usize;
                 while l <= movement_pattern.length() {
-                    let vector = start_vec + (direction * l as f32);
+                    let vector = start_vec + (direction.clone() * l as f32);
                     // If the proposed Position can't exist, break
                     let new_move = match Position::try_from_vec3(vector) {
                         Some(bp) => bp,
@@ -90,9 +90,13 @@ impl AvailableMoves {
                 }
             }
 
-            hashmap.insert((piece, start), moves);
+            if moves.is_empty() {
+                continue;
+            }
+
+            self.0.insert((piece, start), moves);
         }
 
-        self.0 = hashmap;
+        debug!("list: {:?}", self.0)
     }
 }

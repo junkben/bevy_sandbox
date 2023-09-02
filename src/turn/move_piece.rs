@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use super::TurnState;
 use crate::{piece::Piece, position::Position};
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Debug)]
 pub struct PendingMove {
     pub start: Option<Position>,
     pub end:   Option<Position>
@@ -35,18 +35,18 @@ fn move_piece(
     mut piece_query: Query<(&mut Transform, &Position), With<Piece>>
 ) {
     if let Some((start, end)) = pending_move.ready() {
-        for (mut transform, mut position) in piece_query.iter_mut() {
+        for (mut transform, position) in piece_query.iter_mut() {
             if !position.eq(&start) {
                 continue;
             }
 
-            let direction = end.vec3() - transform.translation;
+            let direction = end.translation() - transform.translation;
             if direction.length() > 0.1 {
                 transform.translation +=
                     direction.normalize() * time.delta_seconds() * 5.0;
                 debug!(?transform)
             } else {
-                transform.translation = end.vec3();
+                transform.translation = end.translation();
 
                 // Don't think this is needed anymore
                 // position.set(*end.rank(), *end.file());
@@ -56,6 +56,10 @@ fn move_piece(
                 break;
             }
         }
+    } else {
+        warn!("pending move not ready: {:?}, resetting...", pending_move);
+        debug!("moving to {:?}", TurnState::Start);
+        turn_state.set(TurnState::Start);
     }
 }
 

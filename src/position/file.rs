@@ -1,25 +1,15 @@
 use bevy::prelude::*;
 
-pub const A: File = File::A;
-pub const B: File = File::B;
-pub const C: File = File::C;
-pub const D: File = File::D;
-pub const E: File = File::E;
-pub const F: File = File::F;
-pub const G: File = File::G;
-pub const H: File = File::H;
-pub const FILES: [File; 8] = [A, B, C, D, E, F, G, H];
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum File {
-    A = 1,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H
+    _A = 1,
+    _B,
+    _C,
+    _D,
+    _E,
+    _F,
+    _G,
+    _H
 }
 
 impl std::fmt::Display for File {
@@ -29,29 +19,50 @@ impl std::fmt::Display for File {
 }
 
 impl File {
-    pub fn try_from_isize(i: isize) -> Option<&'static File> {
-        File::iter().filter(|&f| f.isize() == i).next()
+    pub const A: File = File::_A;
+    pub const B: File = File::_B;
+    pub const C: File = File::_C;
+    pub const D: File = File::_D;
+    pub const E: File = File::_E;
+    pub const F: File = File::_F;
+    pub const G: File = File::_G;
+    pub const H: File = File::_H;
+
+    pub fn try_from_isize(i: isize) -> Option<File> {
+        File::iter().filter(|&f| f.isize() == i).next().copied()
     }
 
     pub fn char(&self) -> char {
         match self {
-            File::A => 'a',
-            File::B => 'b',
-            File::C => 'c',
-            File::D => 'd',
-            File::E => 'e',
-            File::F => 'f',
-            File::G => 'g',
-            File::H => 'h'
+            File::_A => 'a',
+            File::_B => 'b',
+            File::_C => 'c',
+            File::_D => 'd',
+            File::_E => 'e',
+            File::_F => 'f',
+            File::_G => 'g',
+            File::_H => 'h'
         }
     }
 
     pub fn isize(&self) -> isize { self as *const _ as isize }
 
-    pub fn vec3(&self) -> Vec3 {
+    pub fn translation(&self) -> Vec3 {
         let x = self.isize() as f32;
         Vec3::new(x - 0.5, 0.0, 0.0)
     }
 
-    pub fn iter() -> impl Iterator<Item = &'static File> { FILES.iter() }
+    pub fn iter() -> impl Iterator<Item = &'static File> {
+        [
+            File::A,
+            File::B,
+            File::C,
+            File::D,
+            File::E,
+            File::F,
+            File::G,
+            File::H
+        ]
+        .iter()
+    }
 }
