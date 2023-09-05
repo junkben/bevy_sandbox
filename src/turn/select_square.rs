@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::{board::square::Square, position::Position};
+use crate::{
+    board::square::Square, position::Position, resources::AvailableMoves
+};
 
 #[derive(Resource, Debug, Default)]
 pub struct SelectedBoardPosition(pub Option<Position>);
@@ -59,10 +61,23 @@ pub fn select_square(
 
 fn enable_square_selection(
     mut commands: Commands,
-    nonpickable_query: Query<Entity, (With<Square>, Without<PickSelection>)>
+    pending_move: Res<PendingMove>,
+    available_moves: Res<AvailableMoves>,
+    nonpickable_query: Query<
+        (Entity, &Position),
+        (With<Square>, Without<PickSelection>)
+    >
 ) {
+    let piece = pending_move.piece.unwrap();
+    let start = pending_move.start.unwrap();
+    let moves = available_moves.moves_from(piece, start).unwrap();
+
     // Give Selection components to square entities
-    for entity in nonpickable_query.iter() {
+    for (entity, position) in nonpickable_query.iter() {
+        if !moves.contains(position) {
+            continue;
+        }
+
         commands
             .entity(entity)
             .insert((PickSelection::default(), RaycastPickTarget::default()));

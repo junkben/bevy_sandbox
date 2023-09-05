@@ -1,18 +1,16 @@
 use bevy::prelude::*;
 
-use super::Piece;
-use crate::position::Position;
-
+#[derive(Debug)]
 pub struct PieceMovementBehavior {
     directions: &'static [Vec3],
-    length:     usize
+    length:     u8
 }
 
 impl PieceMovementBehavior {
     /// Bishops can move any number of squares diagonally
     pub const BISHOP: PieceMovementBehavior = PieceMovementBehavior {
         directions: &DIRECTIONS_DIAG,
-        length:     usize::MAX
+        length:     u8::MAX
     };
     /// Kings can move 1 square vertically, horizontally, or diagonally
     pub const KING: PieceMovementBehavior = PieceMovementBehavior {
@@ -60,17 +58,17 @@ impl PieceMovementBehavior {
     /// diagonally
     pub const QUEEN: PieceMovementBehavior = PieceMovementBehavior {
         directions: &DIRECTIONS_DIAG_ORTHOG,
-        length:     usize::MAX
+        length:     u8::MAX
     };
     /// Rooks can move any number of squares vertically or horizontally
     pub const ROOK: PieceMovementBehavior = PieceMovementBehavior {
         directions: &DIRECTIONS_ORTHOG,
-        length:     usize::MAX
+        length:     u8::MAX
     };
 
     pub fn directions(&self) -> &'static [Vec3] { self.directions }
 
-    pub fn length(&self) -> usize { self.length }
+    pub fn length(&self) -> u8 { self.length }
 }
 
 // TODO: Castling behavior for king and rook
@@ -188,18 +186,3 @@ const DIRECTIONS_DIAG_ORTHOG: [Vec3; 8] = [
         z: -1.0
     }
 ];
-
-pub fn move_pieces(
-    time: Res<Time>,
-    mut query: Query<(&Piece, &Position, &mut Transform)>
-) {
-    for (_p, bp, mut t) in query.iter_mut() {
-        // Get the direction to move in
-        let move_vec = bp.translation() - t.translation;
-
-        // Only move if the piece isn't already there (distance is big)
-        if move_vec.length() > 0.1 {
-            t.translation += move_vec.normalize() * time.delta_seconds();
-        }
-    }
-}

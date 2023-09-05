@@ -21,26 +21,40 @@ impl std::fmt::Display for AvailableMoves {
 impl AvailableMoves {
     pub fn list(&self) -> String {
         let mut strings: Vec<String> = vec![];
-        for ((piece, start), moves) in self.0.clone() {
+        for ((piece, _start), moves) in self.0.clone() {
             for m in moves {
-                info!("{} @ {} => {}", piece, start, m);
-                // strings.push(format!("{piece}@{start} => {m}"));
+                strings.push(format!("{piece}{m}"));
             }
         }
         strings.join(", ")
     }
 
+    pub fn moves_from(
+        &self,
+        piece: Piece,
+        position: Position
+    ) -> Option<&Vec<Position>> {
+        self.0.get(&(piece, position))
+    }
+
     pub fn recalculate(
         &mut self,
-        piece_map: &HashMap<Position, Option<Piece>>
+        piece_map: &HashMap<Position, Option<Piece>>,
+        active_color: &PieceColor
     ) {
         self.0 = HashMap::new();
+        debug!("1");
 
         for (start, piece_opt) in piece_map.clone() {
             if piece_opt.is_none() {
                 continue;
             }
+
             let piece = piece_opt.unwrap();
+
+            if piece.piece_color() != active_color {
+                continue;
+            }
 
             use PieceColor::*;
             use PieceType::*;
@@ -54,15 +68,17 @@ impl AvailableMoves {
                     (White, Pawn) => PieceMovementBehavior::PAWN_WHITE,
                     (Black, Pawn) => PieceMovementBehavior::PAWN_BLACK
                 };
-
             let (start_x, start_z) = start.xz();
             let start_vec = Vec3::new(start_x as f32, 0.0, start_z as f32);
+
             let mut moves: Vec<Position> = Vec::new();
 
             for direction in movement_pattern.directions() {
-                let mut l = 1usize;
+                let mut l: u8 = 1u8;
+
                 while l <= movement_pattern.length() {
                     let vector = start_vec + (direction.clone() * l as f32);
+
                     // If the proposed Position can't exist, break
                     let new_move = match Position::try_from_vec3(vector) {
                         Some(bp) => bp,
@@ -96,7 +112,5 @@ impl AvailableMoves {
 
             self.0.insert((piece, start), moves);
         }
-
-        debug!("list: {:?}", self.0)
     }
 }

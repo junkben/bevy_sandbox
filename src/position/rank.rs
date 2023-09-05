@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Rank {
-    _One = 1,
+    _One,
     _Two,
     _Three,
     _Four,
@@ -28,8 +28,8 @@ impl Rank {
     pub const THREE: Rank = Rank::_Three;
     pub const TWO: Rank = Rank::_Two;
 
-    pub fn try_from_isize(i: isize) -> Option<Rank> {
-        Rank::iter().filter(|&r| r.isize() == i).next().copied()
+    pub fn try_from_isize(i: i8) -> Option<Rank> {
+        Rank::iter().filter(|&r| r.i8() == i).next().copied()
     }
 
     pub fn char(&self) -> char {
@@ -45,10 +45,21 @@ impl Rank {
         }
     }
 
-    pub fn isize(&self) -> isize { self as *const _ as isize }
+    pub fn i8(&self) -> i8 {
+        match self {
+            Rank::_One => 1,
+            Rank::_Two => 2,
+            Rank::_Three => 3,
+            Rank::_Four => 4,
+            Rank::_Five => 5,
+            Rank::_Six => 6,
+            Rank::_Seven => 7,
+            Rank::_Eight => 8
+        }
+    }
 
     pub fn translation(&self) -> Vec3 {
-        let z = self.isize() as f32;
+        let z = self.i8() as f32;
         Vec3::new(0.0, 0.0, -z + 0.5)
     }
 

@@ -24,7 +24,7 @@ pub struct PiecesPlugin;
 impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn::spawn_pieces)
-            .add_systems(Update, movement::move_pieces);
+            /*.add_systems(Update, movement::move_pieces)*/;
     }
 }
 
@@ -64,7 +64,7 @@ impl std::fmt::Display for Piece {
             (Black, Queen) => 'q',
             (Black, Rook) => 'r',
             (Black, Bishop) => 'b',
-            (Black, Knight) => 'k',
+            (Black, Knight) => 'n',
             (Black, Pawn) => 'p'
         })
     }

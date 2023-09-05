@@ -140,25 +140,6 @@ impl std::fmt::Display for BoardState {
 }
 
 impl BoardState {
-    pub fn next_turn(&mut self) {
-        // If Black just moved, then we've completed one turn rotation
-        if self.active_color == PieceColor::BLACK {
-            self.completed_turns += 1;
-        }
-
-        // Every turn advances the halfmove clock
-        self.halfmove_clock += 1;
-
-        // Switch active color
-        use PieceColor::*;
-        self.active_color = match self.active_color {
-            White => PieceColor::BLACK,
-            Black => PieceColor::WHITE
-        };
-
-        debug!(?self)
-    }
-
     pub fn get_piece_at(&self, board_position: Position) -> Option<&Piece> {
         match self.piece_placement_map.get(&board_position) {
             Some(piece_opt) => piece_opt.as_ref(),

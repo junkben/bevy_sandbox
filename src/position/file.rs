@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum File {
-    _A = 1,
+    _A,
     _B,
     _C,
     _D,
@@ -28,8 +28,8 @@ impl File {
     pub const G: File = File::_G;
     pub const H: File = File::_H;
 
-    pub fn try_from_isize(i: isize) -> Option<File> {
-        File::iter().filter(|&f| f.isize() == i).next().copied()
+    pub fn try_from_isize(i: i8) -> Option<File> {
+        File::iter().filter(|&f| f.i8() == i).next().copied()
     }
 
     pub fn char(&self) -> char {
@@ -45,10 +45,21 @@ impl File {
         }
     }
 
-    pub fn isize(&self) -> isize { self as *const _ as isize }
+    pub fn i8(&self) -> i8 {
+        match self {
+            File::_A => 1,
+            File::_B => 2,
+            File::_C => 3,
+            File::_D => 4,
+            File::_E => 5,
+            File::_F => 6,
+            File::_G => 7,
+            File::_H => 8
+        }
+    }
 
     pub fn translation(&self) -> Vec3 {
-        let x = self.isize() as f32;
+        let x = self.i8() as f32;
         Vec3::new(x - 0.5, 0.0, 0.0)
     }
 

@@ -5,7 +5,7 @@ use bevy_mod_picking::{
 };
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::{piece::Piece, position::Position, resources::BoardState};
+use crate::{piece::Piece, position::Position, resources::AvailableMoves};
 
 pub struct SelectPiecePlugin;
 
@@ -27,10 +27,7 @@ fn select_piece(
     mouse_button_inputs: Res<Input<MouseButton>>,
     mut turn_state: ResMut<NextState<TurnState>>,
     mut pending_move: ResMut<PendingMove>,
-    mut piece_query: Query<
-        (Option<&PickingInteraction>, &Position),
-        With<Piece>
-    >
+    mut piece_query: Query<(Option<&PickingInteraction>, &Position, &Piece)>
 ) {
     // Ensure this runs exactly once when the left mouse button is pressed
     if !mouse_button_inputs.just_pressed(MouseButton::Left) {
@@ -38,13 +35,14 @@ fn select_piece(
     }
 
     // Run through all pieces
-    for (interaction, board_position) in &mut piece_query {
+    for (interaction, board_position, piece) in &mut piece_query {
         // Go next if the picking interaction is not pressed
         if interaction != Some(&PickingInteraction::Pressed) {
             continue;
         }
 
         pending_move.start = Some(*board_position);
+        pending_move.piece = Some(*piece);
         break;
     }
 
@@ -54,12 +52,15 @@ fn select_piece(
 
 fn enable_piece_selection(
     mut commands: Commands,
-    board_state: Res<BoardState>,
-    nonpickable_query: Query<(Entity, &Piece), Without<PickSelection>>
+    available_moves: Res<AvailableMoves>,
+    nonpickable_query: Query<
+        (Entity, &Piece, &Position),
+        Without<PickSelection>
+    >
 ) {
     // Give Selection components to pieces whose color matches the active one
-    for (entity, piece) in nonpickable_query.iter() {
-        if &board_state.active_color == piece.piece_color() {
+    for (entity, piece, position) in nonpickable_query.iter() {
+        if let Some(_moves) = available_moves.moves_from(*piece, *position) {
             commands.entity(entity).insert((
                 PickSelection::default(),
                 RaycastPickTarget::default()

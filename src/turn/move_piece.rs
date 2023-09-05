@@ -5,6 +5,7 @@ use crate::{piece::Piece, position::Position};
 
 #[derive(Resource, Default, Debug)]
 pub struct PendingMove {
+    pub piece: Option<Piece>,
     pub start: Option<Position>,
     pub end:   Option<Position>
 }
@@ -32,10 +33,10 @@ fn move_piece(
     time: Res<Time>,
     mut turn_state: ResMut<NextState<TurnState>>,
     pending_move: Res<PendingMove>,
-    mut piece_query: Query<(&mut Transform, &Position), With<Piece>>
+    mut piece_query: Query<(&mut Transform, &mut Position), With<Piece>>
 ) {
     if let Some((start, end)) = pending_move.ready() {
-        for (mut transform, position) in piece_query.iter_mut() {
+        for (mut transform, mut position) in piece_query.iter_mut() {
             if !position.eq(&start) {
                 continue;
             }
@@ -43,13 +44,14 @@ fn move_piece(
             let direction = end.translation() - transform.translation;
             if direction.length() > 0.1 {
                 transform.translation +=
-                    direction.normalize() * time.delta_seconds() * 5.0;
+                    direction.normalize() * time.delta_seconds() * 3.0;
                 debug!(?transform)
             } else {
                 transform.translation = end.translation();
 
-                // Don't think this is needed anymore
-                // position.set(*end.rank(), *end.file());
+                // TODO: find better way to reassign positions
+                position.set_rank(*end.rank());
+                position.set_file(*end.file());
 
                 debug!("moving to {:?}", TurnState::Start);
                 turn_state.set(TurnState::UpdateBoardState);

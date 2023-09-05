@@ -45,6 +45,7 @@ pub fn spawn_board(
 /// Change square color according to position to get alternating pattern
 fn determine_square(board_position: &Position) -> Square {
     let (x, z) = board_position.xz();
+    debug!(?x, ?z);
     if (x + z) % 2 == 0 {
         WHITE_SQUARE
     } else {

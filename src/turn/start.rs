@@ -45,7 +45,8 @@ fn calculate_available_moves(
     mut available_moves: ResMut<AvailableMoves>,
     board_state: Res<BoardState>
 ) {
-    debug!(?board_state.piece_placement_map);
-    available_moves.recalculate(&board_state.piece_placement_map);
+    let piece_map = &board_state.piece_placement_map;
+    let active_color = &board_state.active_color;
+    available_moves.recalculate(piece_map, active_color);
     info!("available_moves: [{}]", available_moves.list())
 }

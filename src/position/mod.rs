@@ -11,10 +11,8 @@ pub struct Position {
     rank: Rank
 }
 
-impl From<Position> for (isize, isize) {
-    fn from(value: Position) -> Self {
-        (value.file.isize(), value.rank.isize())
-    }
+impl From<Position> for (i8, i8) {
+    fn from(value: Position) -> Self { (value.file.i8(), value.rank.i8()) }
 }
 
 impl std::fmt::Display for Position {
@@ -106,7 +104,11 @@ impl Position {
         H1, H, ONE
     );
 
-    pub fn try_from_xz(x: isize, z: isize) -> Option<Position> {
+    pub fn set_rank(&mut self, rank: Rank) { self.rank = rank; }
+
+    pub fn set_file(&mut self, file: File) { self.file = file }
+
+    pub fn try_from_xz(x: i8, z: i8) -> Option<Position> {
         let file = File::try_from_isize(x)?;
         let rank = Rank::try_from_isize(z)?;
         Some(Position { file, rank })
@@ -117,14 +119,14 @@ impl Position {
             return None;
         }
 
-        Position::try_from_xz(vector.x as isize, vector.z as isize)
+        Position::try_from_xz(vector.x as i8, vector.z as i8)
     }
 
     pub fn file(&self) -> &File { &self.file }
 
     pub fn rank(&self) -> &Rank { &self.rank }
 
-    pub fn xz(&self) -> (isize, isize) { <(isize, isize)>::from(*self) }
+    pub fn xz(&self) -> (i8, i8) { <(i8, i8)>::from(*self) }
 
     pub fn iter() -> impl Iterator<Item = &'static Position> {
         Self::ALL.iter()
@@ -135,8 +137,8 @@ impl Position {
         Rank::iter().zip(File::iter())
     }
 
-    pub fn iter_xz() -> impl Iterator<Item = (isize, isize)> {
-        Self::iter_rank_file().map(|(&r, &f)| (r as isize, f as isize))
+    pub fn iter_xz() -> impl Iterator<Item = (i8, i8)> {
+        Self::iter_rank_file().map(|(&r, &f)| (r as i8, f as i8))
     }
 
     pub fn translation(&self) -> Vec3 {
