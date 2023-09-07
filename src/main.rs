@@ -1,6 +1,7 @@
 mod board;
 mod camera;
 mod light;
+mod move_tracker;
 mod piece;
 mod position;
 pub mod resources;

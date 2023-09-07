@@ -1,19 +1,24 @@
-pub mod color;
-pub mod movement;
-pub mod piece_type;
+mod available_moves;
+mod color;
+mod movement;
+mod piece_type;
+mod selection;
 mod spawn;
 
+pub use available_moves::AvailableMoves;
 use bevy::prelude::*;
-use bevy_mod_picking::{prelude::RaycastPickTarget, PickableBundle};
+pub use color::PieceColor;
+pub use movement::PieceMovementBehavior;
+pub use piece_type::PieceType;
+pub use selection::PieceSelectionBundle;
 
-use self::{color::*, piece_type::*};
-use crate::{position::Position, resources::Theme};
+use crate::{move_tracker::MoveTracker, position::Position, resources::Theme};
 
 macro_rules! chess_pieces {
     ($($name:ident, $color:ident, $piece_type:ident);*) => {
         $(
             pub const $name: Piece = Piece {
-                color: PieceColor::$color,
+                color:      PieceColor::$color,
                 piece_type: PieceType::$piece_type
             };
         )*
@@ -30,11 +35,11 @@ impl Plugin for PiecesPlugin {
 
 #[derive(Bundle)]
 pub struct PieceBundle {
-    pbr_bundle:          PbrBundle,
-    pickable_bundle:     PickableBundle,
-    raycast_pick_target: RaycastPickTarget,
-    board_position:      Position,
-    piece:               Piece
+    pbr_bundle:      PbrBundle,
+    board_position:  Position,
+    piece:           Piece,
+    move_tracker:    MoveTracker,
+    available_moves: AvailableMoves
 }
 
 const SCALE: Vec3 = Vec3 {
@@ -43,6 +48,7 @@ const SCALE: Vec3 = Vec3 {
     z: 0.012
 };
 
+/// A component that represents a chess piece
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece {
     color:      PieceColor,

@@ -1,5 +1,4 @@
-use bevy::{math::vec4, prelude::*};
-use bevy_mod_picking::prelude::*;
+use bevy::prelude::*;
 
 use super::{square::*, SquareBundle};
 use crate::{position::Position, resources::Theme};
@@ -18,10 +17,9 @@ fn spawn_square(
     // Assemble the square bundle
     let square_bundle =
         SquareBundle::new(square, pbr_bundle, board_position.clone());
-    let highlight = highlight();
 
     // Spawn the square bundle
-    commands.spawn((square_bundle, highlight));
+    commands.spawn(square_bundle);
 }
 
 pub fn spawn_board(
@@ -50,22 +48,5 @@ fn determine_square(board_position: &Position) -> Square {
         WHITE_SQUARE
     } else {
         BLACK_SQUARE
-    }
-}
-
-fn highlight() -> Highlight<StandardMaterial> {
-    Highlight {
-        hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.2, -0.2, 0.4, 0.0),
-            ..matl.to_owned()
-        })),
-        pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.3, -0.3, 0.5, 0.0),
-            ..matl.to_owned()
-        })),
-        selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.3, 0.2, -0.3, 0.0),
-            ..matl.to_owned()
-        }))
     }
 }

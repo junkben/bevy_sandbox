@@ -5,6 +5,7 @@ use bevy::prelude::*;
 pub use file::File;
 pub use rank::Rank;
 
+/// A component that represents a position on a chess board
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Position {
     file: File,

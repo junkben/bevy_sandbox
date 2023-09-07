@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::{piece::Piece, position::Position};
+use crate::{move_tracker::MoveTracker, piece::Piece, position::Position};
 
 #[derive(Resource, Default, Debug)]
 pub struct PendingMove {
@@ -33,10 +33,15 @@ fn move_piece(
     time: Res<Time>,
     mut turn_state: ResMut<NextState<TurnState>>,
     pending_move: Res<PendingMove>,
-    mut piece_query: Query<(&mut Transform, &mut Position), With<Piece>>
+    mut piece_query: Query<
+        (&mut Transform, &mut Position, &mut MoveTracker),
+        With<Piece>
+    >
 ) {
     if let Some((start, end)) = pending_move.ready() {
-        for (mut transform, mut position) in piece_query.iter_mut() {
+        for (mut transform, mut position, mut move_tracker) in
+            piece_query.iter_mut()
+        {
             if !position.eq(&start) {
                 continue;
             }
@@ -45,13 +50,13 @@ fn move_piece(
             if direction.length() > 0.1 {
                 transform.translation +=
                     direction.normalize() * time.delta_seconds() * 3.0;
-                debug!(?transform)
             } else {
                 transform.translation = end.translation();
 
                 // TODO: find better way to reassign positions
                 position.set_rank(*end.rank());
                 position.set_file(*end.file());
+                move_tracker.inc();
 
                 debug!("moving to {:?}", TurnState::Start);
                 turn_state.set(TurnState::UpdateBoardState);

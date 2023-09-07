@@ -3,7 +3,9 @@ use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::PendingMove, TurnState};
 use crate::{
-    board::square::Square, position::Position, resources::AvailableMoves
+    board::{Square, SquareSelectionBundle},
+    piece::{AvailableMoves, Piece},
+    position::Position
 };
 
 #[derive(Resource, Debug, Default)]
@@ -62,25 +64,27 @@ pub fn select_square(
 fn enable_square_selection(
     mut commands: Commands,
     pending_move: Res<PendingMove>,
-    available_moves: Res<AvailableMoves>,
+    piece_query: Query<(&AvailableMoves, &Position), With<Piece>>,
     nonpickable_query: Query<
         (Entity, &Position),
         (With<Square>, Without<PickSelection>)
     >
 ) {
-    let piece = pending_move.piece.unwrap();
-    let start = pending_move.start.unwrap();
-    let moves = available_moves.moves_from(piece, start).unwrap();
+    let position = pending_move.start.unwrap();
+    let moves = *piece_query
+        .iter()
+        .filter(|&(_, _position)| _position == &position)
+        .map(|(moves, _)| moves)
+        .collect::<Vec<_>>()
+        .get(0)
+        .unwrap();
 
     // Give Selection components to square entities
     for (entity, position) in nonpickable_query.iter() {
-        if !moves.contains(position) {
-            continue;
+        // Add selection if the square's position is an available move
+        if moves.0.contains(position) {
+            SquareSelectionBundle::add_selection(&mut commands, entity);
         }
-
-        commands
-            .entity(entity)
-            .insert((PickSelection::default(), RaycastPickTarget::default()));
     }
 }
 
@@ -90,9 +94,6 @@ fn disable_square_selection(
 ) {
     // Remove Selection components from square entities
     for entity in pickable_query.iter() {
-        commands
-            .entity(entity)
-            .remove::<PickSelection>()
-            .remove::<RaycastPickTarget>();
+        SquareSelectionBundle::remove_selection(&mut commands, entity);
     }
 }

@@ -1,11 +1,12 @@
 use bevy::prelude::*;
-use bevy_mod_picking::{
-    prelude::{PickingInteraction, RaycastPickTarget},
-    selection::PickSelection
-};
+use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::PendingMove, TurnState};
-use crate::{piece::Piece, position::Position, resources::AvailableMoves};
+use crate::{
+    piece::{AvailableMoves, Piece, PieceSelectionBundle},
+    position::Position,
+    resources::ActiveColor
+};
 
 pub struct SelectPiecePlugin;
 
@@ -52,19 +53,20 @@ fn select_piece(
 
 fn enable_piece_selection(
     mut commands: Commands,
-    available_moves: Res<AvailableMoves>,
+    active_color: Res<ActiveColor>,
     nonpickable_query: Query<
-        (Entity, &Piece, &Position),
-        Without<PickSelection>
+        (Entity, &AvailableMoves, &Piece),
+        (With<Piece>, With<Position>, Without<PickSelection>)
     >
 ) {
     // Give Selection components to pieces whose color matches the active one
-    for (entity, piece, position) in nonpickable_query.iter() {
-        if let Some(_moves) = available_moves.moves_from(*piece, *position) {
-            commands.entity(entity).insert((
-                PickSelection::default(),
-                RaycastPickTarget::default()
-            ));
+    for (entity, available_moves, piece) in nonpickable_query.iter() {
+        // Add selection if the piece has available moves and its color matches
+        // the active one
+        if !available_moves.0.is_empty()
+            && piece.piece_color() == &active_color.0
+        {
+            PieceSelectionBundle::add_selection(&mut commands, entity);
         }
     }
 }
@@ -75,9 +77,6 @@ fn disable_piece_selection(
 ) {
     // Remove Selection components from piece entities
     for entity in pickable_query.iter() {
-        commands
-            .entity(entity)
-            .remove::<PickSelection>()
-            .remove::<RaycastPickTarget>();
+        PieceSelectionBundle::remove_selection(&mut commands, entity)
     }
 }

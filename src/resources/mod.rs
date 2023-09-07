@@ -1,26 +1,29 @@
 use bevy::prelude::*;
 
-mod board_state;
-pub use board_state::BoardState;
-
+mod active_color;
+mod castle_availability;
+mod en_passant_tracker;
 mod game_mode;
-pub use game_mode::GameMode;
-
+mod halfmove_tracker;
 mod scoreboard;
-pub use scoreboard::Scoreboard;
-
 mod theme;
-pub use theme::Theme;
 
-mod available_moves;
-pub use available_moves::AvailableMoves;
+pub use active_color::ActiveColor;
+pub use castle_availability::CastlingAvailability;
+pub use en_passant_tracker::EnPassantTracker;
+pub use game_mode::GameMode;
+pub use halfmove_tracker::HalfmoveTracker;
+pub use scoreboard::Scoreboard;
+pub use theme::Theme;
 
 pub struct ResourcesPlugin;
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(AvailableMoves::default())
-            .insert_resource(BoardState::default())
+        app.insert_resource(ActiveColor::default())
+            .insert_resource(CastlingAvailability::default())
+            .insert_resource(EnPassantTracker::default())
             .insert_resource(GameMode::default())
+            .insert_resource(HalfmoveTracker::default())
             .insert_resource(Scoreboard::default())
             .insert_resource(Theme::default());
     }
