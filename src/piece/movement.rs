@@ -1,5 +1,45 @@
 use bevy::prelude::*;
 
+use crate::{physics::TranslationalMotionStart, position::Position};
+
+pub struct PieceMovementPlugin;
+impl Plugin for PieceMovementPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<MovePieceToBoardPosition>().add_systems(
+            Update,
+            move_piece_to_board_position
+                .run_if(on_event::<MovePieceToBoardPosition>())
+        );
+    }
+}
+
+#[derive(Event)]
+pub struct MovePieceToBoardPosition {
+    pub entity:      Entity,
+    pub destination: Position
+}
+
+/// Turn "move entity to board position" event into a "translation motion start"
+/// event
+fn move_piece_to_board_position(
+    mut events: EventReader<MovePieceToBoardPosition>,
+    mut event_writer: EventWriter<TranslationalMotionStart>,
+    entities: Query<Entity>
+) {
+    for event in events.into_iter() {
+        let Ok(entity) = entities.get(event.entity) else {
+            error!("no matching entity");
+            return;
+        };
+
+        let destination = event.destination.translation();
+        event_writer.send(TranslationalMotionStart {
+            entity,
+            destination
+        });
+    }
+}
+
 #[derive(Debug)]
 pub struct PieceMovementBehavior {
     directions: &'static [Vec3],

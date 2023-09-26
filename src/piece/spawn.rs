@@ -1,31 +1,82 @@
 use bevy::prelude::*;
+use bevy_mod_picking::prelude::*;
 
-use super::{available_moves::AvailableMoves, Piece};
-use crate::{move_tracker::MoveTracker, position::Position, resources::Theme};
+use super::{
+    available_moves::AvailableMoves, selection::SelectPiece, Piece,
+    PieceSelectionBundle
+};
+use crate::{
+    move_tracker::MoveTracker, physics::TranslationalMotion,
+    position::Position, resources::Theme
+};
 
-pub fn spawn_pieces(
+pub struct SpawnPiecePlugin;
+impl Plugin for SpawnPiecePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<SpawnPiece>()
+            .add_systems(Update, read_spawn_piece_events);
+    }
+}
+
+#[derive(Bundle)]
+pub struct PieceBundle {
+    pbr_bundle:         PbrBundle,
+    selection:          PieceSelectionBundle,
+    on_pointer_click:   On<Pointer<Click>>,
+    translation_motion: TranslationalMotion,
+    board_position:     Position,
+    piece:              Piece,
+    move_tracker:       MoveTracker,
+    available_moves:    AvailableMoves
+}
+
+impl PieceBundle {
+    pub fn new(
+        pbr_bundle: PbrBundle,
+        position: Position,
+        piece: Piece
+    ) -> PieceBundle {
+        PieceBundle {
+            pbr_bundle,
+            selection: PieceSelectionBundle::default(),
+            on_pointer_click: On::<Pointer<Click>>::send_event::<SelectPiece>(),
+            translation_motion: TranslationalMotion::new(
+                position.translation()
+            ),
+            board_position: position,
+            piece,
+            move_tracker: MoveTracker::default(),
+            available_moves: AvailableMoves::default()
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct SpawnPiece {
+    pub piece:    Piece,
+    pub position: Position
+}
+
+fn read_spawn_piece_events(
     mut commands: Commands,
+    mut spawn_piece_reader: EventReader<SpawnPiece>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     theme: Res<Theme>
 ) {
-    // Spawn pieces in proper squares
-    for (position, piece) in INITIAL_PIECE_POSITIONS.iter() {
-        let pbr_bundle =
-            piece.pbr_bundle(&asset_server, &mut materials, position, &theme);
+    for spawn_piece_event in spawn_piece_reader.into_iter() {
+        let piece = spawn_piece_event.piece;
+        let position = spawn_piece_event.position;
 
-        let piece_bundle = super::PieceBundle {
-            pbr_bundle,
-            board_position: position.clone(),
-            piece: piece.clone(),
-            move_tracker: MoveTracker::default(),
-            available_moves: AvailableMoves::default()
-        };
+        let pbr_bundle =
+            piece.pbr_bundle(&asset_server, &mut materials, &position, &theme);
+
+        let piece_bundle = PieceBundle::new(pbr_bundle, position, piece);
         commands.spawn(piece_bundle);
     }
 }
 
-const INITIAL_PIECE_POSITIONS: [(Position, Piece); 32] = [
+pub const INITIAL_PIECE_POSITIONS: [(Position, Piece); 32] = [
     (Position::A8, Piece::BLACK_ROOK),
     (Position::B8, Piece::BLACK_KNIGHT),
     (Position::C8, Piece::BLACK_BISHOP),

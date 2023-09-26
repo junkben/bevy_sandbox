@@ -1,46 +1,33 @@
 use bevy::{math::vec4, prelude::*};
 use bevy_mod_picking::prelude::*;
 
+pub struct PieceSelectPlugin;
+impl Plugin for PieceSelectPlugin {
+    fn build(&self, app: &mut App) { app.add_event::<SelectPiece>(); }
+}
+
 #[derive(Bundle)]
 pub struct PieceSelectionBundle {
-    pickable:    Pickable,
-    interaction: PickingInteraction,
-    selection:   PickSelection,
-    highlight:   PickHighlight,
-    raycast:     RaycastPickTarget
+    pickable:           Pickable,
+    interaction:        PickingInteraction,
+    selection:          PickSelection,
+    highlight:          PickHighlight,
+    raycast:            RaycastPickTarget,
+    highlight_override: Highlight<StandardMaterial>
 }
 
 impl Default for PieceSelectionBundle {
     fn default() -> Self {
         Self {
-            pickable:    pickable(),
-            interaction: interaction(),
-            selection:   selection(),
-            highlight:   highlight(),
-            raycast:     raycast()
+            pickable:           Pickable::IGNORE,
+            interaction:        interaction(),
+            selection:          selection(),
+            highlight:          highlight(),
+            raycast:            raycast(),
+            highlight_override: highlight_override()
         }
     }
 }
-
-impl PieceSelectionBundle {
-    pub fn add_selection(commands: &mut Commands, entity: Entity) {
-        commands
-            .entity(entity)
-            .insert((PieceSelectionBundle::default(), highlight_override()));
-    }
-
-    pub fn remove_selection(commands: &mut Commands, entity: Entity) {
-        commands
-            .entity(entity)
-            .remove::<Pickable>()
-            .remove::<PickingInteraction>()
-            .remove::<PickSelection>()
-            .remove::<PickHighlight>()
-            .remove::<RaycastPickTarget>();
-    }
-}
-
-fn pickable() -> Pickable { Pickable::default() }
 
 fn interaction() -> PickingInteraction { PickingInteraction::default() }
 
@@ -66,3 +53,16 @@ fn highlight_override() -> Highlight<StandardMaterial> {
 }
 
 fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
+
+#[derive(Event)]
+pub struct SelectPiece {
+    pub entity: Entity
+}
+
+impl From<ListenerInput<Pointer<Click>>> for SelectPiece {
+    fn from(event: ListenerInput<Pointer<Click>>) -> Self {
+        SelectPiece {
+            entity: event.target
+        }
+    }
+}

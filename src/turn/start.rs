@@ -5,6 +5,7 @@ use bevy_panorbit_camera::PanOrbitCamera;
 
 use super::TurnState;
 use crate::{
+    camera::SetCameraTargetAlpha,
     piece::{
         AvailableMoves, Piece, PieceColor, PieceMovementBehavior, PieceType
     },
@@ -30,15 +31,24 @@ const BLACK_ALPHA: f32 = TAU / 2.0;
 fn move_camera(
     mut turn_state: ResMut<NextState<TurnState>>,
     active_color: Res<ActiveColor>,
-    mut camera_query: Query<&mut PanOrbitCamera>
+    camera_query: Query<Entity, With<PanOrbitCamera>>,
+    mut event_writer: EventWriter<SetCameraTargetAlpha>
 ) {
-    let mut camera = camera_query.iter_mut().next().unwrap();
+    let Some(entity) = camera_query.iter().last() else {
+        error!("No camera found in query, cannot move camera");
+        return;
+    };
 
     use PieceColor::*;
-    camera.target_alpha = match active_color.0 {
+    let target_alpha = match active_color.0 {
         White => WHITE_ALPHA,
         Black => BLACK_ALPHA
     };
+
+    event_writer.send(SetCameraTargetAlpha {
+        entity,
+        target_alpha
+    });
 
     debug!("moving to {:?}", TurnState::SelectPiece);
     turn_state.set(TurnState::SelectPiece);
@@ -113,6 +123,6 @@ fn calculate_available_moves(
             }
         }
         available_moves.0 = moves;
-        debug!(?piece, ?available_moves);
+        debug!(?piece, ?position, ?available_moves);
     }
 }

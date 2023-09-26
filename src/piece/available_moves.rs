@@ -11,3 +11,8 @@ impl std::fmt::Display for AvailableMoves {
         write!(f, "{}", self)
     }
 }
+
+// #[derive(Event)]
+// pub struct CalculateAvailableMoves {
+//    entity: Entity
+// }

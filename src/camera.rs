@@ -6,7 +6,15 @@ use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct ChessCameraPlugin;
 impl Plugin for ChessCameraPlugin {
-    fn build(&self, app: &mut App) { app.add_systems(Startup, spawn_camera); }
+    fn build(&self, app: &mut App) {
+        app.add_event::<SetCameraTargetAlpha>()
+            .add_systems(Startup, spawn_camera)
+            .add_systems(
+                Update,
+                check_event_set_camera_target_alpha
+                    .run_if(on_event::<SetCameraTargetAlpha>())
+            );
+    }
 }
 
 fn spawn_camera(mut commands: Commands) {
@@ -34,4 +42,23 @@ fn spawn_camera(mut commands: Commands) {
         },
         RaycastPickCamera::default()
     ));
+}
+
+#[derive(Event)]
+pub struct SetCameraTargetAlpha {
+    pub entity:       Entity,
+    pub target_alpha: f32
+}
+
+fn check_event_set_camera_target_alpha(
+    mut event_reader: EventReader<SetCameraTargetAlpha>,
+    mut query: Query<&mut PanOrbitCamera>
+) {
+    for event in event_reader.into_iter() {
+        let Ok(mut camera) = query.get_mut(event.entity) else {
+            return;
+        };
+
+        camera.target_alpha = event.target_alpha;
+    }
 }

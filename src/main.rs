@@ -2,6 +2,7 @@ mod board;
 mod camera;
 mod light;
 mod move_tracker;
+mod physics;
 mod piece;
 mod position;
 pub mod resources;
@@ -24,7 +25,8 @@ fn main() {
             camera::ChessCameraPlugin,
             light::ChessLightPlugin,
             piece::PiecesPlugin,
-            board::BoardPlugin
+            board::BoardPlugin,
+            physics::MotionPlugin
         ))
         .run();
 }

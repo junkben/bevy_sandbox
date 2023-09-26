@@ -1,7 +1,34 @@
 use bevy::prelude::*;
+use bevy_mod_picking::prelude::*;
 
-use super::{square::*, SquareBundle};
+use super::{square::*, SelectSquare, SquareSelectionBundle};
 use crate::{position::Position, resources::Theme};
+
+#[derive(Bundle)]
+struct SquareBundle {
+    square:           Square,
+    pbr_bundle:       PbrBundle,
+    position:         Position,
+    selection_bundle: SquareSelectionBundle,
+    on_pointer_click: On<Pointer<Click>>
+}
+
+impl SquareBundle {
+    pub fn new(
+        square: Square,
+        pbr_bundle: PbrBundle,
+        position: Position
+    ) -> SquareBundle {
+        SquareBundle {
+            square,
+            pbr_bundle,
+            position,
+            selection_bundle: SquareSelectionBundle::default(),
+            on_pointer_click: On::<Pointer<Click>>::send_event::<SelectSquare>(
+            )
+        }
+    }
+}
 
 fn spawn_square(
     commands: &mut Commands,
@@ -43,7 +70,6 @@ pub fn spawn_board(
 /// Change square color according to position to get alternating pattern
 fn determine_square(board_position: &Position) -> Square {
     let (x, z) = board_position.xz();
-    debug!(?x, ?z);
     if (x + z) % 2 == 0 {
         WHITE_SQUARE
     } else {

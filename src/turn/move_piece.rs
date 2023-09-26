@@ -1,76 +1,68 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::{move_tracker::MoveTracker, piece::Piece, position::Position};
-
-#[derive(Resource, Default, Debug)]
-pub struct PendingMove {
-    pub piece: Option<Piece>,
-    pub start: Option<Position>,
-    pub end:   Option<Position>
-}
-
-impl PendingMove {
-    fn ready(&self) -> Option<(&Position, &Position)> {
-        self.start.as_ref().zip(self.end.as_ref())
-    }
-}
+use crate::{
+    move_tracker::MoveTracker,
+    physics::TranslationalMotionDone,
+    piece::{MovePieceToBoardPosition, Piece},
+    position::Position,
+    resources::PendingMove
+};
 
 pub struct PieceMovementPlugin;
 
 impl Plugin for PieceMovementPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(PendingMove::default())
+            .add_systems(OnEnter(TurnState::MovePiece), confirm_pending_move)
             .add_systems(
                 Update,
-                move_piece.run_if(in_state(TurnState::MovePiece))
-            )
-            .add_systems(OnExit(TurnState::MovePiece), clear_pending_move);
+                wait_for_piece_motion_to_complete
+                    .run_if(in_state(TurnState::MovePiece))
+            );
     }
 }
 
-fn move_piece(
-    time: Res<Time>,
+fn confirm_pending_move(
+    mut event_writer: EventWriter<MovePieceToBoardPosition>,
     mut turn_state: ResMut<NextState<TurnState>>,
-    pending_move: Res<PendingMove>,
-    mut piece_query: Query<
-        (&mut Transform, &mut Position, &mut MoveTracker),
-        With<Piece>
-    >
+    mut pending_move: ResMut<PendingMove>,
+    mut piece_query: Query<(&mut Position, &mut MoveTracker), With<Piece>>
 ) {
-    if let Some((start, end)) = pending_move.ready() {
-        for (mut transform, mut position, mut move_tracker) in
-            piece_query.iter_mut()
-        {
-            if !position.eq(&start) {
-                continue;
-            }
+    if let Some((entity, _piece, destination)) = pending_move.confirm() {
+        let Ok((mut position, mut move_tracker)) = piece_query.get_mut(entity)
+        else {
+            error!("no entity matches piece query");
+            return;
+        };
 
-            let direction = end.translation() - transform.translation;
-            if direction.length() > 0.1 {
-                transform.translation +=
-                    direction.normalize() * time.delta_seconds() * 3.0;
-            } else {
-                transform.translation = end.translation();
-
-                // TODO: find better way to reassign positions
-                position.set_rank(*end.rank());
-                position.set_file(*end.file());
-                move_tracker.inc();
-
-                debug!("moving to {:?}", TurnState::Start);
-                turn_state.set(TurnState::UpdateBoardState);
-                break;
-            }
-        }
+        //
+        position.set_rank(*destination.rank());
+        position.set_file(*destination.file());
+        move_tracker.inc();
+        event_writer.send(MovePieceToBoardPosition {
+            entity,
+            destination
+        });
     } else {
         warn!("pending move not ready: {:?}, resetting...", pending_move);
-        debug!("moving to {:?}", TurnState::Start);
+        debug!("moving back to {:?}", TurnState::Start);
         turn_state.set(TurnState::Start);
     }
 }
 
-fn clear_pending_move(mut pending_move: ResMut<PendingMove>) {
-    pending_move.start = None;
-    pending_move.end = None;
+fn wait_for_piece_motion_to_complete(
+    mut event_reader: EventReader<TranslationalMotionDone>,
+    mut turn_state: ResMut<NextState<TurnState>>,
+    piece_query: Query<Entity, With<Piece>>
+) {
+    for event in event_reader.into_iter() {
+        let Ok(_entity) = piece_query.get(event.entity) else {
+            return;
+        };
+
+        // Event entity handshake succeeded, move to next state
+        debug!("moving to {:?}", TurnState::UpdateBoardState);
+        turn_state.set(TurnState::UpdateBoardState);
+    }
 }

@@ -1,61 +1,47 @@
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
-use super::{move_piece::PendingMove, TurnState};
+use super::TurnState;
 use crate::{
-    board::{Square, SquareSelectionBundle},
+    board::{SelectSquare, Square},
     piece::{AvailableMoves, Piece},
-    position::Position
+    position::Position,
+    resources::PendingMove
 };
-
-#[derive(Resource, Debug, Default)]
-pub struct SelectedBoardPosition(pub Option<Position>);
 
 pub struct SelectSquarePlugin;
 
 impl Plugin for SelectSquarePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(SelectedBoardPosition::default())
-            .add_systems(
-                OnEnter(TurnState::SelectDestinationSquare),
-                enable_square_selection
-            )
-            .add_systems(
-                OnExit(TurnState::SelectDestinationSquare),
-                disable_square_selection
-            )
-            .add_systems(
-                Update,
-                select_square
-                    .run_if(in_state(TurnState::SelectDestinationSquare))
-            );
+        app.add_systems(
+            OnEnter(TurnState::SelectDestinationSquare),
+            enable_square_selection
+        )
+        .add_systems(
+            OnExit(TurnState::SelectDestinationSquare),
+            disable_square_selection
+        )
+        .add_systems(Update, select_square.run_if(on_event::<SelectSquare>()));
     }
 }
 
-pub fn select_square(
-    mouse_button_inputs: Res<Input<MouseButton>>,
+fn select_square(
+    mut events: EventReader<SelectSquare>,
     mut turn_state: ResMut<NextState<TurnState>>,
     mut pending_move: ResMut<PendingMove>,
-    mut square_query: Query<
-        (Option<&PickingInteraction>, &Position),
-        With<Square>
-    >
+    square_query: Query<&Position, With<Square>>
 ) {
-    // Run only if the left mouse was just pressed
-    if !mouse_button_inputs.just_pressed(MouseButton::Left) {
+    let Some(event) = events.into_iter().last() else {
+        error!("not exactly one SelectSquare event");
         return;
-    }
+    };
 
-    // Run through all squares
-    for (interaction, board_position) in &mut square_query {
-        // Go next if the picking interaction is not pressed
-        if interaction != Some(&PickingInteraction::Pressed) {
-            continue;
-        }
+    let Ok(position) = square_query.get(event.entity) else {
+        error!("no matching entity in square query");
+        return;
+    };
 
-        pending_move.end = Some(*board_position);
-        break;
-    }
+    pending_move.destination = Some(*position);
 
     debug!("moving to {:?}", TurnState::MovePiece);
     turn_state.set(TurnState::MovePiece);
@@ -64,36 +50,41 @@ pub fn select_square(
 fn enable_square_selection(
     mut commands: Commands,
     pending_move: Res<PendingMove>,
-    piece_query: Query<(&AvailableMoves, &Position), With<Piece>>,
-    nonpickable_query: Query<
-        (Entity, &Position),
-        (With<Square>, Without<PickSelection>)
-    >
+    piece_query: Query<&AvailableMoves, With<Piece>>,
+    nonpickable_query: Query<(Entity, &Position), With<Square>>
 ) {
-    let position = pending_move.start.unwrap();
-    let moves = *piece_query
-        .iter()
-        .filter(|&(_, _position)| _position == &position)
-        .map(|(moves, _)| moves)
-        .collect::<Vec<_>>()
-        .get(0)
-        .unwrap();
+    let Some(pending_move_entity) = pending_move.entity else {
+        error!("no pending_move entity, cannot enable square selection");
+        return;
+    };
+
+    let Ok(moves) = piece_query.get(pending_move_entity) else {
+        panic!("cannot find available moves for piece");
+    };
+
+    if moves.0.is_empty() {
+        panic!("available move vector empty")
+    }
 
     // Give Selection components to square entities
     for (entity, position) in nonpickable_query.iter() {
         // Add selection if the square's position is an available move
         if moves.0.contains(position) {
-            SquareSelectionBundle::add_selection(&mut commands, entity);
+            debug!("enabling pickable for square entity {:?}", entity);
+            commands.entity(entity).insert(Pickable::default());
         }
     }
 }
 
 fn disable_square_selection(
     mut commands: Commands,
-    pickable_query: Query<Entity, (With<Square>, With<PickSelection>)>
+    mut pickable_query: Query<(Entity, &mut PickSelection), With<Square>>
 ) {
     // Remove Selection components from square entities
-    for entity in pickable_query.iter() {
-        SquareSelectionBundle::remove_selection(&mut commands, entity);
+    for (entity, mut selection) in pickable_query.iter_mut() {
+        selection.is_selected = false;
+
+        debug!("disabling pickable for square entity {:?}", entity);
+        commands.entity(entity).insert(Pickable::IGNORE);
     }
 }

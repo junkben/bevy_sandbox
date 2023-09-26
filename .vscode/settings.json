@@ -6,5 +6,6 @@
     "editor.wordWrapColumn": 100,
     "files.eol": "\n",
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 5000
+    "files.autoSaveDelay": 5000,
+    "rust-analyzer.showUnlinkedFileNotification": false
 }

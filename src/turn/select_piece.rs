@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
-use super::{move_piece::PendingMove, TurnState};
+use super::TurnState;
 use crate::{
-    piece::{AvailableMoves, Piece, PieceSelectionBundle},
+    piece::{AvailableMoves, Piece, SelectPiece},
     position::Position,
-    resources::ActiveColor
+    resources::{ActiveColor, PendingMove}
 };
 
 pub struct SelectPiecePlugin;
@@ -17,35 +17,28 @@ impl Plugin for SelectPiecePlugin {
             enable_piece_selection
         )
         .add_systems(OnExit(TurnState::SelectPiece), disable_piece_selection)
-        .add_systems(
-            Update,
-            select_piece.run_if(in_state(TurnState::SelectPiece))
-        );
+        .add_systems(Update, select_piece.run_if(on_event::<SelectPiece>()));
     }
 }
 
 fn select_piece(
-    mouse_button_inputs: Res<Input<MouseButton>>,
+    mut events: EventReader<SelectPiece>,
     mut turn_state: ResMut<NextState<TurnState>>,
     mut pending_move: ResMut<PendingMove>,
-    mut piece_query: Query<(Option<&PickingInteraction>, &Position, &Piece)>
+    piece_query: Query<(Entity, &Position, &Piece)>
 ) {
-    // Ensure this runs exactly once when the left mouse button is pressed
-    if !mouse_button_inputs.just_pressed(MouseButton::Left) {
+    let Some(event) = events.into_iter().last() else {
+        error!("not exactly one SelectPiece event");
         return;
-    }
+    };
 
-    // Run through all pieces
-    for (interaction, board_position, piece) in &mut piece_query {
-        // Go next if the picking interaction is not pressed
-        if interaction != Some(&PickingInteraction::Pressed) {
-            continue;
-        }
+    let Ok((entity, _position, piece)) = piece_query.get(event.entity) else {
+        error!("no matching entity in piece query");
+        return;
+    };
 
-        pending_move.start = Some(*board_position);
-        pending_move.piece = Some(*piece);
-        break;
-    }
+    pending_move.entity = Some(entity);
+    pending_move.piece = Some(*piece);
 
     debug!("moving to {:?}", TurnState::SelectDestinationSquare);
     turn_state.set(TurnState::SelectDestinationSquare);
@@ -54,10 +47,7 @@ fn select_piece(
 fn enable_piece_selection(
     mut commands: Commands,
     active_color: Res<ActiveColor>,
-    nonpickable_query: Query<
-        (Entity, &AvailableMoves, &Piece),
-        (With<Piece>, With<Position>, Without<PickSelection>)
-    >
+    nonpickable_query: Query<(Entity, &AvailableMoves, &Piece)>
 ) {
     // Give Selection components to pieces whose color matches the active one
     for (entity, available_moves, piece) in nonpickable_query.iter() {
@@ -66,17 +56,19 @@ fn enable_piece_selection(
         if !available_moves.0.is_empty()
             && piece.piece_color() == &active_color.0
         {
-            PieceSelectionBundle::add_selection(&mut commands, entity);
+            debug!("enabling pickable for piece entity {:?}", entity);
+            commands.entity(entity).insert(Pickable::default());
         }
     }
 }
 
 fn disable_piece_selection(
     mut commands: Commands,
-    pickable_query: Query<Entity, (With<PickSelection>, With<Piece>)>
+    pickable_query: Query<Entity, With<Piece>>
 ) {
     // Remove Selection components from piece entities
     for entity in pickable_query.iter() {
-        PieceSelectionBundle::remove_selection(&mut commands, entity)
+        debug!("disabling pickable for piece entity {:?}", entity);
+        commands.entity(entity).insert(Pickable::IGNORE);
     }
 }

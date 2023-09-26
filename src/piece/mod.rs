@@ -8,11 +8,16 @@ mod spawn;
 pub use available_moves::AvailableMoves;
 use bevy::prelude::*;
 pub use color::PieceColor;
-pub use movement::PieceMovementBehavior;
+pub use movement::{MovePieceToBoardPosition, PieceMovementBehavior};
 pub use piece_type::PieceType;
-pub use selection::PieceSelectionBundle;
+pub use selection::{PieceSelectionBundle, SelectPiece};
+pub use spawn::{INITIAL_PIECE_POSITIONS, SpawnPiece};
 
-use crate::{move_tracker::MoveTracker, position::Position, resources::Theme};
+use self::{
+    movement::PieceMovementPlugin, selection::PieceSelectPlugin,
+    spawn::SpawnPiecePlugin
+};
+use crate::{position::Position, resources::Theme};
 
 macro_rules! chess_pieces {
     ($($name:ident, $color:ident, $piece_type:ident);*) => {
@@ -28,18 +33,12 @@ macro_rules! chess_pieces {
 pub struct PiecesPlugin;
 impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn::spawn_pieces)
-            /*.add_systems(Update, movement::move_pieces)*/;
+        app.add_plugins((
+            SpawnPiecePlugin,
+            PieceSelectPlugin,
+            PieceMovementPlugin
+        ));
     }
-}
-
-#[derive(Bundle)]
-pub struct PieceBundle {
-    pbr_bundle:      PbrBundle,
-    board_position:  Position,
-    piece:           Piece,
-    move_tracker:    MoveTracker,
-    available_moves: AvailableMoves
 }
 
 const SCALE: Vec3 = Vec3 {
@@ -133,22 +132,20 @@ impl Piece {
         })
     }
 
-    fn translation(&self, board_position: Position) -> Vec3 {
-        self.piece_type.mesh_translation_offset() + board_position.translation()
+    fn translation(&self, position: Position) -> Vec3 {
+        self.piece_type.mesh_translation_offset() + position.translation()
     }
 
     pub fn pbr_bundle(
         &self,
         asset_server: &Res<AssetServer>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        board_position: &Position,
+        position: &Position,
         theme: &Res<Theme>
     ) -> PbrBundle {
-        info!("spawning {}{}", self, board_position);
-
         let mesh = self.mesh_handle(asset_server);
         let material = self.material_handle(materials, theme);
-        let translation = self.translation(board_position.clone());
+        let translation = self.translation(position.clone());
         let transform =
             Transform::from_translation(translation).with_scale(SCALE);
 

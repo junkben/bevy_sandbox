@@ -508,18 +508,8 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "233f729a5a2c7182f89b17c5d603cd604d095ee68d22c81b29be3cd30324f77d"
 dependencies = [
- "bevy_eventlistener_core 0.3.0",
- "bevy_eventlistener_derive 0.3.0",
-]
-
-[[package]]
-name = "bevy_eventlistener"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2286692ae8d447ffad04e341d8bb043f3398b1b7c11960f7273d182e680db5d9"
-dependencies = [
- "bevy_eventlistener_core 0.5.0",
- "bevy_eventlistener_derive 0.5.0",
+ "bevy_eventlistener_core",
+ "bevy_eventlistener_derive",
 ]
 
 [[package]]
@@ -532,36 +522,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_eventlistener_core"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33df2ede925a4aa6627bd2bc8eb2563fd0191b20ad6ded0ae7fe590417282fea"
-dependencies = [
- "bevy_app",
- "bevy_ecs",
- "bevy_hierarchy",
- "bevy_utils",
-]
-
-[[package]]
 name = "bevy_eventlistener_derive"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "407110082f2a861eb198c254226aa4a24c239fcff235f2aec41b0b0db5e8937f"
 dependencies = [
- "bevy_eventlistener_core 0.3.0",
- "proc-macro2",
- "quote",
- "syn 2.0.26",
-]
-
-[[package]]
-name = "bevy_eventlistener_derive"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fe207d331933648415f88d280f89e14d0d0eb78b717821fb8ade4a69e6ead41"
-dependencies = [
- "bevy_eventlistener_core 0.5.0",
+ "bevy_eventlistener_core",
  "proc-macro2",
  "quote",
  "syn 2.0.26",
@@ -756,7 +722,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ce0837727f451ec62dad98a7bd35a8ff929e5a148bb0044122aba02683c09df"
 dependencies = [
  "bevy",
- "bevy_eventlistener 0.3.0",
+ "bevy_eventlistener",
  "bevy_picking_core",
  "bevy_picking_highlight",
  "bevy_picking_input",
@@ -771,6 +737,16 @@ name = "bevy_mod_raycast"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8cbc448fc8a8817cbf225f58a58ab45ab87e9d335b66c4c1674fba45f062c822"
+dependencies = [
+ "bevy",
+ "crossbeam-channel",
+]
+
+[[package]]
+name = "bevy_mod_raycast"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9789907394dc92193e7a0123041de3bc302fd12ffc187c4fc2f365060aee941"
 dependencies = [
  "bevy",
  "crossbeam-channel",
@@ -816,7 +792,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b10f159071accb3f17f86b70a2cafed27f96a828f155721d8f82706d5a65af"
 dependencies = [
  "bevy",
- "bevy_eventlistener 0.3.0",
+ "bevy_eventlistener",
 ]
 
 [[package]]
@@ -849,7 +825,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f53ba9aee1a3a48e016f4d35b066cca75d2ddd983ad2a0e14ecf92956501a3c"
 dependencies = [
  "bevy",
- "bevy_mod_raycast",
+ "bevy_mod_raycast 0.12.0",
  "bevy_picking_core",
 ]
 
@@ -860,7 +836,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61980e57b09ff29b52c2910ba5b4e9bcfe8f9481931e62fd277a16b6ec3390f2"
 dependencies = [
  "bevy",
- "bevy_eventlistener 0.3.0",
+ "bevy_eventlistener",
  "bevy_picking_core",
 ]
 
@@ -992,8 +968,9 @@ name = "bevy_sandbox"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "bevy_eventlistener 0.5.0",
+ "bevy_eventlistener",
  "bevy_mod_picking",
+ "bevy_mod_raycast 0.13.1",
  "bevy_panorbit_camera",
  "itertools",
 ]
