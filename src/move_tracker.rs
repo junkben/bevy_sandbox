@@ -19,7 +19,7 @@ impl MoveTracker {
         }
     }
 
-    // pub fn has_moved(&self) -> bool { self.0 > 0 }
+    pub fn has_moved(&self) -> bool { self.0 > 0 }
 
     // pub fn move_count(&self) -> u8 { self.0 }
 }
