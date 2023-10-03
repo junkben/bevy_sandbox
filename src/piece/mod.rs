@@ -5,17 +5,19 @@ mod piece_type;
 mod selection;
 mod spawn;
 
-pub use available_moves::AvailableMoves;
+pub use available_moves::{
+    AvailableMoves, CalculateAvailableMoves, CalculateAvailableMovesDone
+};
 use bevy::prelude::*;
 pub use color::PieceColor;
 pub use movement::{MovePieceToBoardPosition, PieceMovementBehavior};
 pub use piece_type::PieceType;
 pub use selection::{PieceSelectionBundle, SelectPiece};
-pub use spawn::{INITIAL_PIECE_POSITIONS, SpawnPiece};
+pub use spawn::{SpawnPiece, INITIAL_PIECE_POSITIONS};
 
 use self::{
-    movement::PieceMovementPlugin, selection::PieceSelectPlugin,
-    spawn::SpawnPiecePlugin
+    available_moves::AvailableMovesPlugin, movement::PieceMovementPlugin,
+    selection::PieceSelectPlugin, spawn::SpawnPiecePlugin
 };
 use crate::{position::Position, resources::Theme};
 
@@ -36,7 +38,8 @@ impl Plugin for PiecesPlugin {
         app.add_plugins((
             SpawnPiecePlugin,
             PieceSelectPlugin,
-            PieceMovementPlugin
+            PieceMovementPlugin,
+            AvailableMovesPlugin
         ));
     }
 }

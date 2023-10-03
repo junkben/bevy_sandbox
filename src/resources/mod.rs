@@ -24,6 +24,7 @@ expose_mod_resource!(
     en_passant_tracker::EnPassantTracker;
     game_mode::GameMode;
     halfmove_tracker::HalfmoveTracker;
+    move_history::MoveHistory;
     pending_move::PendingMove;
     scoreboard::Scoreboard;
     theme::Theme

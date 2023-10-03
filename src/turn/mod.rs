@@ -1,8 +1,7 @@
 mod end;
 mod game_start;
 mod move_piece;
-mod select_piece;
-mod select_square;
+mod select_move;
 mod start;
 mod update_board_state;
 
@@ -14,8 +13,7 @@ impl Plugin for TurnManagerPlugin {
         app.add_state::<TurnState>().add_plugins((
             game_start::GameStartPlugin,
             start::TurnStartPlugin,
-            select_piece::SelectPiecePlugin,
-            select_square::SelectSquarePlugin,
+            select_move::SelectMovePlugin,
             move_piece::PieceMovementPlugin,
             update_board_state::UpdateBoardStatePlugin,
             end::EndTurnPlugin
@@ -30,13 +28,8 @@ pub enum TurnState {
     GameStart,
     /// New turn starting
     Start,
-    /// Process possible destination squares for each piece
-    // ProcessAvailableMoves,
-    /// Waiting for player to select a piece
-    SelectPiece,
-    /// Piece has been selected, waiting for player to select a destination
-    /// square
-    SelectDestinationSquare,
+    /// Waiting for player to select a piece and destination
+    SelectMove,
     /// Waiting for piece to complete movement animation
     MovePiece,
     /// Process board state resulting from player's move

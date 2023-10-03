@@ -38,15 +38,15 @@ fn highlight() -> PickHighlight { PickHighlight::default() }
 fn highlight_override() -> Highlight<StandardMaterial> {
     Highlight {
         hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.2, -0.2, 0.4, 0.0),
+            base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
             ..matl.to_owned()
         })),
         pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.3, -0.3, 0.5, 0.0),
+            base_color: matl.base_color + vec4(0.6, 0.6, 0.6, 0.0),
             ..matl.to_owned()
         })),
         selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(-0.3, 0.2, -0.3, 0.0),
+            base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
             ..matl.to_owned()
         }))
     }

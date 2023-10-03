@@ -1,19 +1,26 @@
 mod board;
 mod camera;
+mod end_game;
 mod light;
+mod move_info;
 mod move_tracker;
 mod physics;
 mod piece;
 mod position;
 pub mod resources;
+mod settings;
 mod turn;
 
 use bevy::prelude::*;
+pub use move_info::{MoveInfo, MoveType};
+pub use settings::GameSettings;
 
 fn main() {
     App::new()
         // Set antialiasing to use 4 samples
         .insert_resource(Msaa::Sample4)
+        // Add in Game Settings
+        .insert_resource(GameSettings::default())
         // Add resources first
         .add_plugins(resources::ResourcesPlugin)
         // Set WindowDescriptor Resource to change title and size

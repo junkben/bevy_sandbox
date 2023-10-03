@@ -6,7 +6,7 @@ use crate::{
     physics::TranslationalMotionDone,
     piece::{MovePieceToBoardPosition, Piece},
     position::Position,
-    resources::PendingMove
+    resources::{MoveHistory, PendingMove}
 };
 
 pub struct PieceMovementPlugin;
@@ -27,23 +27,32 @@ fn confirm_pending_move(
     mut event_writer: EventWriter<MovePieceToBoardPosition>,
     mut turn_state: ResMut<NextState<TurnState>>,
     mut pending_move: ResMut<PendingMove>,
+    mut move_history: ResMut<MoveHistory>,
     mut piece_query: Query<(&mut Position, &mut MoveTracker), With<Piece>>
 ) {
-    if let Some((entity, _piece, destination)) = pending_move.confirm() {
-        let Ok((mut position, mut move_tracker)) = piece_query.get_mut(entity)
+    if let Some(mi) = pending_move.confirm() {
+        let Ok((mut position, mut move_tracker)) =
+            piece_query.get_mut(mi.entity)
         else {
             error!("no entity matches piece query");
             return;
         };
 
-        //
-        position.set_rank(*destination.rank());
-        position.set_file(*destination.file());
+        // Update position of piece to new position
+        position.set_rank(*mi.final_position.rank());
+        position.set_file(*mi.final_position.file());
+
+        // Increment the move tracker
         move_tracker.inc();
+
+        // Send the event to physically move the piece to the new board position
         event_writer.send(MovePieceToBoardPosition {
-            entity,
-            destination
+            entity:      mi.entity,
+            destination: mi.final_position
         });
+
+        // Add the move to the MoveHistory resource
+        move_history.append_move(mi);
     } else {
         warn!("pending move not ready: {:?}, resetting...", pending_move);
         debug!("moving back to {:?}", TurnState::Start);
