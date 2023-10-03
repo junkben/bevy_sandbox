@@ -48,7 +48,7 @@ pub(super) fn read_translational_motion_start_events(
             return;
         };
 
-        debug!(
+        trace!(
             "entity {:?} moving to translation {:?}",
             entity, event.destination
         );

@@ -55,7 +55,7 @@ fn update_checklist(
         debug!("moving to {:?}", TurnState::SelectMove);
         turn_state.set(TurnState::SelectMove);
     } else {
-        debug!("waiting for move calculations to finish")
+        trace!("waiting for move calculations to finish")
     }
 }
 

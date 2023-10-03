@@ -3,7 +3,7 @@ use bevy_mod_picking::prelude::*;
 
 pub struct PieceSelectPlugin;
 impl Plugin for PieceSelectPlugin {
-    fn build(&self, app: &mut App) { app.add_event::<SelectPiece>(); }
+    fn build(&self, app: &mut App) { app.add_event::<UserSelectedPiece>(); }
 }
 
 #[derive(Bundle)]
@@ -55,13 +55,13 @@ fn highlight_override() -> Highlight<StandardMaterial> {
 fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
 
 #[derive(Event)]
-pub struct SelectPiece {
+pub struct UserSelectedPiece {
     pub entity: Entity
 }
 
-impl From<ListenerInput<Pointer<Click>>> for SelectPiece {
+impl From<ListenerInput<Pointer<Click>>> for UserSelectedPiece {
     fn from(event: ListenerInput<Pointer<Click>>) -> Self {
-        SelectPiece {
+        UserSelectedPiece {
             entity: event.target
         }
     }

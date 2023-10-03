@@ -44,11 +44,11 @@ fn wait_for_piece_spawning(
         }
 
         if !spawned {
-            debug!("not done spawning pieces yet...");
+            trace!("not done spawning pieces yet...");
             return;
         }
     }
 
-    debug!("done spawning pieces, moving to {:?}", TurnState::Start);
+    trace!("done spawning pieces, moving to {:?}", TurnState::Start);
     turn_state.set(TurnState::Start);
 }

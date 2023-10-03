@@ -12,7 +12,7 @@ use bevy::prelude::*;
 pub use color::PieceColor;
 pub use movement::{MovePieceToBoardPosition, PieceMovementBehavior};
 pub use piece_type::PieceType;
-pub use selection::{PieceSelectionBundle, SelectPiece};
+pub use selection::{PieceSelectionBundle, UserSelectedPiece};
 pub use spawn::{SpawnPiece, INITIAL_PIECE_POSITIONS};
 
 use self::{

@@ -25,7 +25,7 @@ impl Plugin for AvailableMovesPlugin {
 }
 
 /// A component that tracks the available positions an entity can move to
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Debug, Clone)]
 pub struct AvailableMoves(pub Vec<MoveInfo>);
 
 impl std::fmt::Display for AvailableMoves {
@@ -43,6 +43,16 @@ impl AvailableMoves {
         }
 
         return false;
+    }
+
+    pub fn get_move_to(&self, position: &Position) -> Option<&MoveInfo> {
+        for m in &self.0 {
+            if &m.final_position == position {
+                return Some(m);
+            }
+        }
+
+        return None;
     }
 }
 
@@ -66,10 +76,13 @@ fn calculate_available_moves(
 
     let occupied_positions = piece_query
         .iter()
-        .map(|(_entity, other_piece, other_position, ..)| {
-            (other_position.clone(), other_piece.piece_color().clone())
+        .map(|(entity, other_piece, other_position, ..)| {
+            (
+                other_position.clone(),
+                (entity, other_piece.piece_color().clone())
+            )
         })
-        .collect::<HashMap<Position, PieceColor>>();
+        .collect::<HashMap<Position, (Entity, PieceColor)>>();
 
     for (entity, &piece, &initial_position, mut available_moves) in
         piece_query.iter_mut()
@@ -108,7 +121,7 @@ fn calculate_available_moves(
 
                 // Check if there is a piece at the end position. If there is,
                 // we'll record it's color
-                if let Some(other_piece_color) =
+                if let Some((other_entity, other_piece_color)) =
                     occupied_positions.get(&final_position)
                 {
                     // We're breaking as we can't possibly go past this
@@ -123,7 +136,8 @@ fn calculate_available_moves(
                             initial_position,
                             final_position,
                             move_type: MoveType::Capture {
-                                is_en_passant: false
+                                is_en_passant: false,
+                                captured:      *other_entity
                             }
                         });
                     }
@@ -145,7 +159,7 @@ fn calculate_available_moves(
             }
         }
         available_moves.0 = moves;
-        debug!(?piece, ?initial_position, ?available_moves);
+        trace!(?piece, ?initial_position, ?available_moves);
     }
 
     event_writer.send(CalculateAvailableMovesDone)

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use super::{
-    available_moves::AvailableMoves, selection::SelectPiece, Piece,
+    available_moves::AvailableMoves, selection::UserSelectedPiece, Piece,
     PieceSelectionBundle
 };
 use crate::{
@@ -39,7 +39,9 @@ impl PieceBundle {
         PieceBundle {
             pbr_bundle,
             selection: PieceSelectionBundle::default(),
-            on_pointer_click: On::<Pointer<Click>>::send_event::<SelectPiece>(),
+            on_pointer_click: On::<Pointer<Click>>::send_event::<
+                UserSelectedPiece
+            >(),
             translation_motion: TranslationalMotion::new(
                 position.translation()
             ),

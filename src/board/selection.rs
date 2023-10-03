@@ -3,7 +3,7 @@ use bevy_mod_picking::prelude::*;
 
 pub struct SquareSelectPlugin;
 impl Plugin for SquareSelectPlugin {
-    fn build(&self, app: &mut App) { app.add_event::<SelectSquare>(); }
+    fn build(&self, app: &mut App) { app.add_event::<UserSelectedSquare>(); }
 }
 
 #[derive(Bundle)]
@@ -55,13 +55,13 @@ fn highlight_override() -> Highlight<StandardMaterial> {
 fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
 
 #[derive(Event)]
-pub struct SelectSquare {
+pub struct UserSelectedSquare {
     pub entity: Entity
 }
 
-impl From<ListenerInput<Pointer<Click>>> for SelectSquare {
+impl From<ListenerInput<Pointer<Click>>> for UserSelectedSquare {
     fn from(event: ListenerInput<Pointer<Click>>) -> Self {
-        SelectSquare {
+        UserSelectedSquare {
             entity: event.target
         }
     }

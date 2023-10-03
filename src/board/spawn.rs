@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
-use super::{square::*, SelectSquare, SquareSelectionBundle};
+use super::{square::*, SquareSelectionBundle, UserSelectedSquare};
 use crate::{position::Position, resources::Theme};
 
 #[derive(Bundle)]
@@ -24,8 +24,9 @@ impl SquareBundle {
             pbr_bundle,
             position,
             selection_bundle: SquareSelectionBundle::default(),
-            on_pointer_click: On::<Pointer<Click>>::send_event::<SelectSquare>(
-            )
+            on_pointer_click: On::<Pointer<Click>>::send_event::<
+                UserSelectedSquare
+            >()
         }
     }
 }

@@ -1,28 +1,34 @@
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
-use super::TurnState;
+use super::{move_piece::MoveSelected, TurnState};
 use crate::{
-    board::{SelectSquare, Square},
-    piece::{AvailableMoves, Piece, SelectPiece},
+    board::{Square, UserSelectedSquare},
+    piece::{AvailableMoves, Piece, UserSelectedPiece},
     position::Position,
-    resources::{ActiveColor, PendingMove}
+    resources::ActiveColor
 };
 
 pub struct SelectMovePlugin;
 
 #[derive(Event)]
-pub struct PieceSelected;
+pub struct PieceSelected {
+    entity: Entity
+}
+
+#[derive(Resource, Default)]
+pub struct CurrentlyAvailableMoves(pub AvailableMoves);
 
 impl Plugin for SelectMovePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PieceSelected>()
+        app.insert_resource(CurrentlyAvailableMoves::default())
+            .add_event::<PieceSelected>()
             .add_systems(OnEnter(TurnState::SelectMove), enable_piece_selection)
             .add_systems(
                 Update,
                 (
-                    select_piece.run_if(on_event::<SelectPiece>()),
-                    select_square.run_if(on_event::<SelectSquare>()),
+                    select_piece.run_if(on_event::<UserSelectedPiece>()),
+                    select_square.run_if(on_event::<UserSelectedSquare>()),
                     update_square_selection.run_if(on_event::<PieceSelected>())
                 )
             )
@@ -33,13 +39,39 @@ impl Plugin for SelectMovePlugin {
     }
 }
 
+fn select_piece(
+    mut event_reader: EventReader<UserSelectedPiece>,
+    mut event_writer: EventWriter<PieceSelected>,
+    mut currently_available_moves: ResMut<CurrentlyAvailableMoves>,
+    piece_query: Query<(Entity, &AvailableMoves), With<Piece>>
+) {
+    let Some(event) = event_reader.into_iter().last() else {
+        error!("not exactly one SelectPiece event");
+        return;
+    };
+
+    let Ok((entity, moves)) = piece_query.get(event.entity) else {
+        error!("no matching entity in piece query");
+        return;
+    };
+
+    // if AvailableMoves is empty, then panic (shouldn't have been selectable)
+    if moves.0.is_empty() {
+        panic!("available move vector empty")
+    }
+
+    currently_available_moves.0 = moves.clone();
+    event_writer.send(PieceSelected { entity })
+}
+
 fn select_square(
-    mut events: EventReader<SelectSquare>,
+    mut event_reader: EventReader<UserSelectedSquare>,
+    mut event_writer: EventWriter<MoveSelected>,
     mut turn_state: ResMut<NextState<TurnState>>,
-    mut pending_move: ResMut<PendingMove>,
+    mut currently_available_moves: ResMut<CurrentlyAvailableMoves>,
     square_query: Query<&Position, With<Square>>
 ) {
-    let Some(event) = events.into_iter().last() else {
+    let Some(event) = event_reader.into_iter().last() else {
         error!("not exactly one SelectSquare event");
         return;
     };
@@ -49,7 +81,13 @@ fn select_square(
         return;
     };
 
-    pending_move.final_position = Some(*position);
+    let Some(move_info) = currently_available_moves.0.get_move_to(position)
+    else {
+        panic!("no matching MoveInfo in CurrentlyAvailableMoves");
+    };
+
+    event_writer.send(MoveSelected(*move_info));
+    currently_available_moves.0 = AvailableMoves::default();
 
     debug!("moving to {:?}", TurnState::MovePiece);
     turn_state.set(TurnState::MovePiece);
@@ -57,37 +95,24 @@ fn select_square(
 
 fn update_square_selection(
     mut event_reader: EventReader<PieceSelected>,
-    pending_move: Res<PendingMove>,
-    moves_query: Query<&AvailableMoves, With<Piece>>,
-    mut square_query: Query<(Entity, &Position, &mut Pickable), With<Square>>
+    moves_query: Query<&AvailableMoves>,
+    mut square_query: Query<(&Position, &mut Pickable), With<Square>>
 ) {
-    let Some(_) = event_reader.into_iter().last() else {
+    // get event from EventReader
+    let Some(event) = event_reader.into_iter().last() else {
         error!("not exactly one PieceSelected event");
         return;
     };
 
-    let Some(pending_move_entity) = pending_move.entity else {
-        error!("no pending_move entity, cannot enable square selection");
-        return;
+    // if the AvailableMoves query doesn't contain the event entity, then panic
+    let Ok(moves) = moves_query.get(event.entity) else {
+        panic!("cannot find available moves for entity");
     };
-
-    let Ok(moves) = moves_query.get(pending_move_entity) else {
-        panic!("cannot find available moves for piece");
-    };
-
-    if moves.0.is_empty() {
-        panic!("available move vector empty")
-    }
 
     // Give Selection components to square entities
-    for (entity, position, mut pickable) in square_query.iter_mut() {
+    for (position, mut pickable) in square_query.iter_mut() {
         // Add selection if the square's position is an available move
-        if moves.contains_move_to(position) {
-            debug!("enabling pickable for square entity {:?}", entity);
-            pickable.should_emit_events = true;
-        } else {
-            pickable.should_emit_events = false;
-        }
+        pickable.should_emit_events = moves.contains_move_to(position);
     }
 }
 
@@ -99,7 +124,7 @@ fn disable_square_selection(
     for (entity, mut selection) in pickable_query.iter_mut() {
         selection.is_selected = false;
 
-        debug!("disabling pickable for square entity {:?}", entity);
+        trace!("disabling pickable for square entity {:?}", entity);
         commands.entity(entity).insert(Pickable::IGNORE);
     }
 }
@@ -110,31 +135,9 @@ fn disable_piece_selection(
 ) {
     // Remove Selection components from piece entities
     for entity in pickable_query.iter() {
-        debug!("disabling pickable for piece entity {:?}", entity);
+        trace!("disabling pickable for piece entity {:?}", entity);
         commands.entity(entity).insert(Pickable::IGNORE);
     }
-}
-
-fn select_piece(
-    mut event_reader: EventReader<SelectPiece>,
-    mut event_writer: EventWriter<PieceSelected>,
-    mut pending_move: ResMut<PendingMove>,
-    piece_query: Query<(Entity, &Position, &Piece)>
-) {
-    let Some(event) = event_reader.into_iter().last() else {
-        error!("not exactly one SelectPiece event");
-        return;
-    };
-
-    let Ok((entity, position, piece)) = piece_query.get(event.entity) else {
-        error!("no matching entity in piece query");
-        return;
-    };
-
-    pending_move.initial_position = Some(*position);
-    pending_move.entity = Some(entity);
-    pending_move.piece = Some(*piece);
-    event_writer.send(PieceSelected)
 }
 
 fn enable_piece_selection(
@@ -149,7 +152,7 @@ fn enable_piece_selection(
         if !available_moves.0.is_empty()
             && piece.piece_color() == &active_color.0
         {
-            debug!("enabling pickable for piece entity {:?}", entity);
+            trace!("enabling pickable for piece entity {:?}", entity);
             commands.entity(entity).insert(Pickable::default());
         }
     }

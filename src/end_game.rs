@@ -1,4 +1,5 @@
 /// https://en.wikipedia.org/wiki/Chess#End_of_the_game
+#[allow(dead_code)]
 pub enum EndGameCondition {
     /// The king is in check and the player has no legal move.
     Checkmate,
@@ -82,6 +83,7 @@ pub enum EndGameCondition {
     DrawByResignation
 }
 
+#[allow(dead_code)]
 pub enum EndGameType {
     Win,
     Draw
