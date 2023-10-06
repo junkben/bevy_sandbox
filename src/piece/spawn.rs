@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
-use super::{
-    available_moves::AvailableMoves, selection::UserSelectedPiece, Piece,
-    PieceSelectionBundle
-};
+use super::{selection::UserSelectedPiece, Piece, PieceSelectionBundle};
 use crate::{
     move_tracker::MoveTracker, physics::TranslationalMotion,
     position::Position, resources::Theme
@@ -26,8 +23,7 @@ pub struct PieceBundle {
     translation_motion: TranslationalMotion,
     board_position:     Position,
     piece:              Piece,
-    move_tracker:       MoveTracker,
-    available_moves:    AvailableMoves
+    move_tracker:       MoveTracker
 }
 
 impl PieceBundle {
@@ -47,8 +43,7 @@ impl PieceBundle {
             ),
             board_position: position,
             piece,
-            move_tracker: MoveTracker::default(),
-            available_moves: AvailableMoves::default()
+            move_tracker: MoveTracker::default()
         }
     }
 }

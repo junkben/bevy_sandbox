@@ -27,12 +27,12 @@ pub enum MoveType {
         is_kingside: bool
     },
     Check,
+    Checkmate,
     DrawOffer
 }
 
 #[derive(Debug, Copy, Clone)]
 pub struct MoveInfo {
-    pub entity:           Entity,
     pub piece:            Piece,
     pub initial_position: Position,
     pub final_position:   Position,
@@ -46,10 +46,23 @@ impl std::fmt::Display for MoveInfo {
                 PieceType::Pawn => format!("{}", self.final_position),
                 _ => format!("{}{}", self.piece, self.final_position)
             },
-            MoveType::Capture { .. } => {
-                format!("{}x{}", self.piece, self.final_position)
+            MoveType::Capture { is_en_passant, .. } => match is_en_passant {
+                true => format!("{}x{} e.p.", self.piece, self.final_position),
+                false => format!("{}x{}", self.piece, self.final_position)
             },
-            _ => todo!()
+            // TODO: Cover case of Capture and Promotion simultaneously
+            MoveType::PawnPromotion { promoted_to } =>
+                format!("{}{}{}", self.piece, self.final_position, promoted_to),
+            MoveType::Castle { is_kingside } => match is_kingside {
+                true => format!("0-0"),
+                false => format!("0-0-0")
+            },
+            MoveType::Check =>
+                format!("{}{}+", self.piece, self.final_position),
+            MoveType::Checkmate =>
+                format!("{}{}#", self.piece, self.final_position),
+            MoveType::DrawOffer =>
+                format!("{}{}=", self.piece, self.final_position),
         })
     }
 }

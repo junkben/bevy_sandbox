@@ -40,189 +40,169 @@ fn move_piece_to_board_position(
     }
 }
 
-#[derive(Debug)]
-pub struct PieceMovementBehavior {
-    directions: &'static [Vec3],
-    length:     u8
+#[derive(Debug, PartialEq)]
+pub enum SpecialMovement {
+    PawnCapture
 }
 
+#[derive(Debug)]
+pub struct PieceMovementBehavior(Vec<(Vec3, u8, Option<SpecialMovement>)>);
+
 impl PieceMovementBehavior {
-    /// Bishops can move any number of squares diagonally
-    pub const BISHOP: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &DIRECTIONS_DIAG,
-        length:     u8::MAX
-    };
     /// Kings can move 1 square vertically, horizontally, or diagonally
-    pub const KING: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &DIRECTIONS_DIAG_ORTHOG,
-        length:     1
-    };
+    pub fn king() -> PieceMovementBehavior {
+        PieceMovementBehavior(vec![
+            (N.vec3(), 1, None),
+            (NE.vec3(), 1, None),
+            (E.vec3(), 1, None),
+            (SE.vec3(), 1, None),
+            (S.vec3(), 1, None),
+            (SW.vec3(), 1, None),
+            (W.vec3(), 1, None),
+            (NW.vec3(), 1, None),
+        ])
+    }
+
     /// Knights can either move 1 square horizontally and 2 squares vertically
     /// or move 2 squares horizontally and 1 square vertically
-    pub const KNIGHT: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &DIRECTIONS_LSHAPE,
-        length:     1
-    };
-    pub const PAWN_BLACK: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &[Vec3::NEG_Z],
-        length:     1
-    };
-    pub const PAWN_CAPTURE_BLACK: PieceMovementBehavior =
-        PieceMovementBehavior {
-            directions: &[PX_NZ, NX_NZ],
-            length:     1
+    pub fn knight() -> PieceMovementBehavior {
+        PieceMovementBehavior(vec![
+            (NNE.vec3(), 1, None),
+            (ENE.vec3(), 1, None),
+            (ESE.vec3(), 1, None),
+            (SSE.vec3(), 1, None),
+            (SSW.vec3(), 1, None),
+            (WSW.vec3(), 1, None),
+            (WNW.vec3(), 1, None),
+            (NNW.vec3(), 1, None),
+        ])
+    }
+
+    /// Pawn movement is complicated
+    pub fn pawn(color: PieceColor, first_move: bool) -> PieceMovementBehavior {
+        let mut move_vec: Vec<(Vec3, u8, Option<SpecialMovement>)> = vec![];
+
+        let max_magnitude: u8 = if first_move { 2 } else { 1 };
+        match color {
+            PieceColor::White => {
+                move_vec.push((N.vec3(), max_magnitude, None));
+                move_vec.push((
+                    NE.vec3(),
+                    1,
+                    Some(SpecialMovement::PawnCapture)
+                ));
+                move_vec.push((
+                    NW.vec3(),
+                    1,
+                    Some(SpecialMovement::PawnCapture)
+                ));
+            },
+            PieceColor::Black => {
+                move_vec.push((S.vec3(), max_magnitude, None));
+                move_vec.push((
+                    SE.vec3(),
+                    1,
+                    Some(SpecialMovement::PawnCapture)
+                ));
+                move_vec.push((
+                    SW.vec3(),
+                    1,
+                    Some(SpecialMovement::PawnCapture)
+                ));
+            }
         };
-    // PAWN CAPTURE
-    pub const PAWN_CAPTURE_WHITE: PieceMovementBehavior =
-        PieceMovementBehavior {
-            directions: &[PX_PZ, NX_PZ],
-            length:     1
-        };
-    pub const PAWN_FIRSTMOVE_BLACK: PieceMovementBehavior =
-        PieceMovementBehavior {
-            directions: &[Vec3::NEG_Z],
-            length:     2
-        };
-    // PAWN FIRST MOVE
-    pub const PAWN_FIRSTMOVE_WHTIE: PieceMovementBehavior =
-        PieceMovementBehavior {
-            directions: &[Vec3::Z],
-            length:     2
-        };
-    // PAWNS
-    pub const PAWN_WHITE: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &[Vec3::Z],
-        length:     1
-    };
+
+        PieceMovementBehavior(move_vec)
+    }
+
     /// Queens can move any number of squares vertically, horizontally, or
     /// diagonally
-    pub const QUEEN: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &DIRECTIONS_DIAG_ORTHOG,
-        length:     u8::MAX
-    };
+    pub fn queen() -> PieceMovementBehavior {
+        PieceMovementBehavior(vec![
+            (N.vec3(), u8::MAX, None),
+            (NE.vec3(), u8::MAX, None),
+            (E.vec3(), u8::MAX, None),
+            (SE.vec3(), u8::MAX, None),
+            (S.vec3(), u8::MAX, None),
+            (SW.vec3(), u8::MAX, None),
+            (W.vec3(), u8::MAX, None),
+            (NW.vec3(), u8::MAX, None),
+        ])
+    }
+
     /// Rooks can move any number of squares vertically or horizontally
-    pub const ROOK: PieceMovementBehavior = PieceMovementBehavior {
-        directions: &DIRECTIONS_ORTHOG,
-        length:     u8::MAX
-    };
+    pub fn rook() -> PieceMovementBehavior {
+        PieceMovementBehavior(vec![
+            (N.vec3(), u8::MAX, None),
+            (E.vec3(), u8::MAX, None),
+            (S.vec3(), u8::MAX, None),
+            (W.vec3(), u8::MAX, None),
+        ])
+    }
 
-    pub fn directions(&self) -> &'static [Vec3] { self.directions }
+    /// Bishops can move any number of squares diagonally
+    pub fn bishop() -> PieceMovementBehavior {
+        PieceMovementBehavior(vec![
+            (NE.vec3(), u8::MAX, None),
+            (SE.vec3(), u8::MAX, None),
+            (SW.vec3(), u8::MAX, None),
+            (NW.vec3(), u8::MAX, None),
+        ])
+    }
 
-    pub fn length(&self) -> u8 { self.length }
+    pub fn iter<'a>(
+        &'a self
+    ) -> impl Iterator<Item = &'a (Vec3, u8, Option<SpecialMovement>)> + 'a
+    {
+        self.0.iter()
+    }
 }
 
 // TODO: Castling behavior for king and rook
+enum Direction {
+    N,
+    NNE,
+    NE,
+    ENE,
+    E,
+    ESE,
+    SE,
+    SSE,
+    S,
+    SSW,
+    SW,
+    WSW,
+    W,
+    WNW,
+    NW,
+    NNW
+}
 
-const PX_PZ: Vec3 = Vec3 {
-    x: 1.0,
-    y: 0.0,
-    z: 1.0
-};
-const PX_NZ: Vec3 = Vec3 {
-    x: 1.0,
-    y: 0.0,
-    z: -1.0
-};
-const NX_PZ: Vec3 = Vec3 {
-    x: -1.0,
-    y: 0.0,
-    z: 1.0
-};
-const NX_NZ: Vec3 = Vec3 {
-    x: -1.0,
-    y: 0.0,
-    z: -1.0
-};
+use Direction::*;
 
-const DIRECTIONS_LSHAPE: [Vec3; 8] = [
-    Vec3 {
-        x: 1.0,
-        y: 0.0,
-        z: 2.0
-    },
-    Vec3 {
-        x: 1.0,
-        y: 0.0,
-        z: -2.0
-    },
-    Vec3 {
-        x: -1.0,
-        y: 0.0,
-        z: 2.0
-    },
-    Vec3 {
-        x: -1.0,
-        y: 0.0,
-        z: -2.0
-    },
-    Vec3 {
-        x: 2.0,
-        y: 0.0,
-        z: 1.0
-    },
-    Vec3 {
-        x: 2.0,
-        y: 0.0,
-        z: -1.0
-    },
-    Vec3 {
-        x: -2.0,
-        y: 0.0,
-        z: 1.0
-    },
-    Vec3 {
-        x: -2.0,
-        y: 0.0,
-        z: -1.0
+use super::PieceColor;
+
+impl Direction {
+    pub const fn vec3(&self) -> Vec3 {
+        let (x, z) = match self {
+            N => (0.0, 1.0),
+            NNE => (1.0, 2.0),
+            NE => (1.0, 1.0),
+            ENE => (2.0, 1.0),
+            E => (1.0, 0.0),
+            ESE => (2.0, -1.0),
+            SE => (1.0, -1.0),
+            SSE => (1.0, -2.0),
+            S => (0.0, -1.0),
+            SSW => (-1.0, -2.0),
+            SW => (-1.0, -1.0),
+            WSW => (-2.0, -1.0),
+            W => (0.0, -1.0),
+            WNW => (-2.0, 1.0),
+            NW => (-1.0, 1.0),
+            NNW => (-1.0, 2.0)
+        };
+
+        Vec3::new(x, 0.0, z)
     }
-];
-const DIRECTIONS_ORTHOG: [Vec3; 4] =
-    [Vec3::X, Vec3::Z, Vec3::NEG_X, Vec3::NEG_Z];
-const DIRECTIONS_DIAG: [Vec3; 4] = [
-    Vec3 {
-        x: 1.0,
-        y: 0.0,
-        z: 1.0
-    },
-    Vec3 {
-        x: 1.0,
-        y: 0.0,
-        z: -1.0
-    },
-    Vec3 {
-        x: -1.0,
-        y: 0.0,
-        z: 1.0
-    },
-    Vec3 {
-        x: -1.0,
-        y: 0.0,
-        z: -1.0
-    }
-];
-const DIRECTIONS_DIAG_ORTHOG: [Vec3; 8] = [
-    Vec3::X,
-    Vec3::Z,
-    Vec3::NEG_X,
-    Vec3::NEG_Z,
-    Vec3 {
-        x: 1.0,
-        y: 0.0,
-        z: 1.0
-    },
-    Vec3 {
-        x: 1.0,
-        y: 0.0,
-        z: -1.0
-    },
-    Vec3 {
-        x: -1.0,
-        y: 0.0,
-        z: 1.0
-    },
-    Vec3 {
-        x: -1.0,
-        y: 0.0,
-        z: -1.0
-    }
-];
+}

@@ -4,8 +4,10 @@ use bevy_panorbit_camera::PanOrbitCamera;
 use super::TurnState;
 use crate::{
     camera::SetCameraTargetAlpha,
-    piece::{CalculateAvailableMoves, CalculateAvailableMovesDone, PieceColor},
-    resources::ActiveColor,
+    piece::PieceColor,
+    resources::{
+        ActiveColor, CalculateAvailableMoves, CalculateAvailableMovesDone
+    },
     GameSettings
 };
 
@@ -14,6 +16,8 @@ pub struct TurnStartPlugin;
 impl Plugin for TurnStartPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TurnStartChecklist::default())
+            .add_event::<CalculateAvailableMoves>()
+            .add_event::<CalculateAvailableMovesDone>()
             .add_systems(
                 OnEnter(TurnState::Start),
                 (start_calculate_available_moves, move_camera)
@@ -47,7 +51,8 @@ fn update_checklist(
     mut turn_state: ResMut<NextState<TurnState>>
 ) {
     if let Some(_) = event_reader_moves.iter().last() {
-        start_turn_checklist.calculated_moves = true
+        start_turn_checklist.calculated_moves = true;
+        debug!("consumed CalculateAvailableMovesDone");
     };
 
     if start_turn_checklist.done() {
@@ -55,7 +60,7 @@ fn update_checklist(
         debug!("moving to {:?}", TurnState::SelectMove);
         turn_state.set(TurnState::SelectMove);
     } else {
-        trace!("waiting for move calculations to finish")
+        debug!("waiting for move calculations to finish")
     }
 }
 

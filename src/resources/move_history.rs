@@ -27,6 +27,6 @@ impl std::fmt::Display for MoveHistory {
 impl MoveHistory {
     pub fn append_move(&mut self, move_info: MoveInfo) {
         self.0.push(move_info);
-        debug!("{}", self)
+        info!("{}", self)
     }
 }

@@ -26,7 +26,10 @@ impl Plugin for PieceMovementPlugin {
 }
 
 #[derive(Event)]
-pub struct MoveSelected(pub MoveInfo);
+pub struct MoveSelected {
+    pub entity:    Entity,
+    pub move_info: MoveInfo
+}
 
 fn confirm_move(
     mut commands: Commands,
@@ -40,34 +43,34 @@ fn confirm_move(
         return;
     };
 
-    let mi: &MoveInfo = &event.0;
-
-    let Ok((mut position, mut move_tracker)) = piece_query.get_mut(mi.entity)
+    let Ok((mut position, mut move_tracker)) =
+        piece_query.get_mut(event.entity)
     else {
         error!("no entity matches piece query");
         return;
     };
 
+    // TODO: Remove captured piece in more elegant way via animation?
     // If it's a capture, remove the captured entity
-    if let MoveType::Capture { captured, .. } = mi.move_type {
+    if let MoveType::Capture { captured, .. } = event.move_info.move_type {
         commands.entity(captured).despawn();
     }
 
     // Update position of piece to new position
-    position.set_rank(*mi.final_position.rank());
-    position.set_file(*mi.final_position.file());
+    position.set_rank(*event.move_info.final_position.rank());
+    position.set_file(*event.move_info.final_position.file());
 
     // Increment the move tracker
     move_tracker.inc();
 
     // Send the event to physically move the piece to the new board position
     event_writer.send(MovePieceToBoardPosition {
-        entity:      mi.entity,
-        destination: mi.final_position
+        entity:      event.entity,
+        destination: event.move_info.final_position
     });
 
     // Add the move to the MoveHistory resource
-    move_history.append_move(*mi);
+    move_history.append_move(event.move_info);
 }
 
 fn wait_for_piece_motion_to_complete(
