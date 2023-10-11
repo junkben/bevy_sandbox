@@ -3,30 +3,30 @@ use bevy_mod_picking::prelude::*;
 
 pub struct PieceSelectPlugin;
 impl Plugin for PieceSelectPlugin {
-    fn build(&self, app: &mut App) { app.add_event::<UserSelectedPiece>(); }
+	fn build(&self, app: &mut App) { app.add_event::<UserSelectedPiece>(); }
 }
 
 #[derive(Bundle)]
 pub struct PieceSelectionBundle {
-    pickable:           Pickable,
-    interaction:        PickingInteraction,
-    selection:          PickSelection,
-    highlight:          PickHighlight,
-    raycast:            RaycastPickTarget,
-    highlight_override: Highlight<StandardMaterial>
+	pickable:           Pickable,
+	interaction:        PickingInteraction,
+	selection:          PickSelection,
+	highlight:          PickHighlight,
+	raycast:            RaycastPickTarget,
+	highlight_override: Highlight<StandardMaterial>
 }
 
 impl Default for PieceSelectionBundle {
-    fn default() -> Self {
-        Self {
-            pickable:           Pickable::IGNORE,
-            interaction:        interaction(),
-            selection:          selection(),
-            highlight:          highlight(),
-            raycast:            raycast(),
-            highlight_override: highlight_override()
-        }
-    }
+	fn default() -> Self {
+		Self {
+			pickable:           Pickable::IGNORE,
+			interaction:        interaction(),
+			selection:          selection(),
+			highlight:          highlight(),
+			raycast:            raycast(),
+			highlight_override: highlight_override()
+		}
+	}
 }
 
 fn interaction() -> PickingInteraction { PickingInteraction::default() }
@@ -36,33 +36,33 @@ fn selection() -> PickSelection { PickSelection::default() }
 fn highlight() -> PickHighlight { PickHighlight::default() }
 
 fn highlight_override() -> Highlight<StandardMaterial> {
-    Highlight {
-        hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
-            ..matl.to_owned()
-        })),
-        pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(0.6, 0.6, 0.6, 0.0),
-            ..matl.to_owned()
-        })),
-        selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-            base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
-            ..matl.to_owned()
-        }))
-    }
+	Highlight {
+		hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+			base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
+			..matl.to_owned()
+		})),
+		pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+			base_color: matl.base_color + vec4(0.6, 0.6, 0.6, 0.0),
+			..matl.to_owned()
+		})),
+		selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
+			base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
+			..matl.to_owned()
+		}))
+	}
 }
 
 fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
 
 #[derive(Event)]
 pub struct UserSelectedPiece {
-    pub entity: Entity
+	pub entity: Entity
 }
 
 impl From<ListenerInput<Pointer<Click>>> for UserSelectedPiece {
-    fn from(event: ListenerInput<Pointer<Click>>) -> Self {
-        UserSelectedPiece {
-            entity: event.target
-        }
-    }
+	fn from(event: ListenerInput<Pointer<Click>>) -> Self {
+		UserSelectedPiece {
+			entity: event.target
+		}
+	}
 }

@@ -3,27 +3,25 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 
 use crate::{
-    move_info::MoveInfo,
-    move_tracker::MoveTracker,
-    piece::{
-        Piece, PieceColor, PieceMovementBehavior, PieceType, SpecialMovement
-    },
-    position::*,
-    MoveType
+	move_info::MoveInfo,
+	move_tracker::MoveTracker,
+	piece::{MovementType, Piece, PieceMovementBehavior, PieceType},
+	position::*,
+	MoveType
 };
 
 pub struct AvailableMovesPlugin;
 impl Plugin for AvailableMovesPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(AvailableMoves::default())
-            .add_event::<CalculateAvailableMoves>()
-            .add_event::<CalculateAvailableMovesDone>()
-            .add_systems(
-                Update,
-                calculate_available_moves
-                    .run_if(on_event::<CalculateAvailableMoves>())
-            );
-    }
+	fn build(&self, app: &mut App) {
+		app.insert_resource(AvailableMoves::default())
+			.add_event::<CalculateAvailableMoves>()
+			.add_event::<CalculateAvailableMovesDone>()
+			.add_systems(
+				Update,
+				calculate_available_moves
+					.run_if(on_event::<CalculateAvailableMoves>())
+			);
+	}
 }
 
 /// A component that tracks the available positions an entity can move to
@@ -31,43 +29,49 @@ impl Plugin for AvailableMovesPlugin {
 pub struct AvailableMoves(pub HashMap<Entity, Vec<MoveInfo>>);
 
 impl std::fmt::Display for AvailableMoves {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
-    }
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}", self)
+	}
 }
 
 impl AvailableMoves {
-    pub fn contains_move_to(
-        &self,
-        entity: &Entity,
-        position: &Position
-    ) -> bool {
-        if let Some(moves) = self.0.get(entity) {
-            for m in moves {
-                if &m.final_position == position {
-                    return true;
-                }
-            }
-        }
+	pub fn contains_move_to(
+		&self,
+		entity: &Entity,
+		position: &Position
+	) -> bool {
+		if let Some(moves) = self.0.get(entity) {
+			for m in moves {
+				if &m.final_position == position {
+					return true;
+				}
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    pub fn get_move_to(
-        &self,
-        entity: &Entity,
-        position: &Position
-    ) -> Option<&MoveInfo> {
-        if let Some(moves) = self.0.get(entity) {
-            for m in moves {
-                if &m.final_position == position {
-                    return Some(m);
-                }
-            }
-        }
+	pub fn get_move_to(
+		&self,
+		entity: &Entity,
+		position: &Position
+	) -> Option<&MoveInfo> {
+		if let Some(moves) = self.0.get(entity) {
+			for m in moves {
+				if &m.final_position == position {
+					return Some(m);
+				}
+			}
+		}
 
-        return None;
-    }
+		return None;
+	}
+}
+
+pub enum SquareState {
+	Empty,
+	Opposing(Entity),
+	Friendly
 }
 
 #[derive(Event)]
@@ -77,120 +81,150 @@ pub struct CalculateAvailableMoves;
 pub struct CalculateAvailableMovesDone;
 
 fn calculate_available_moves(
-    mut event_reader: EventReader<CalculateAvailableMoves>,
-    mut event_writer: EventWriter<CalculateAvailableMovesDone>,
-    mut available_moves: ResMut<AvailableMoves>,
-    mut piece_query: Query<(Entity, &Piece, &Position, &MoveTracker)>
+	mut event_reader: EventReader<CalculateAvailableMoves>,
+	mut event_writer: EventWriter<CalculateAvailableMovesDone>,
+	mut available_moves: ResMut<AvailableMoves>,
+	mut piece_query: Query<(Entity, &Piece, &Position, &MoveTracker)>,
+	opposing_piece_query: Query<(Entity, &Position, &Piece)>
 ) {
-    // Consume CalculateAvailableMoves
-    let Some(_) = event_reader.into_iter().last() else {
-        error!("not exactly one CalculateAvailableMoves event");
-        return;
-    };
+	// Consume CalculateAvailableMoves
+	let Some(_) = event_reader.into_iter().last() else {
+		error!("not exactly one CalculateAvailableMoves event");
+		return;
+	};
 
-    let occupied_positions = piece_query
-        .iter()
-        .map(|(entity, other_piece, other_position, ..)| {
-            (
-                other_position.clone(),
-                (entity, other_piece.piece_color().clone())
-            )
-        })
-        .collect::<HashMap<Position, (Entity, PieceColor)>>();
+	for (entity, &piece, &initial_position, &move_tracker) in
+		piece_query.iter_mut()
+	{
+		// Gather piece default movement patterns
+		use PieceType::*;
+		let movement_patterns = match piece.piece_type() {
+			King => PieceMovementBehavior::king(),
+			Queen => PieceMovementBehavior::queen(),
+			Rook => PieceMovementBehavior::rook(),
+			Bishop => PieceMovementBehavior::bishop(),
+			Knight => PieceMovementBehavior::knight(),
+			Pawn => {
+				// Grab piece color
+				let piece_color = *piece.piece_color();
 
-    for (entity, &piece, &initial_position, &move_tracker) in
-        piece_query.iter_mut()
-    {
-        let is_pawn = piece.piece_type() == &Pawn;
+				// It is the pawn's first move if it hasn't moved yet
+				let first_move = !move_tracker.has_moved();
 
-        // Gather piece default movement patterns
-        use PieceType::*;
-        let movement_patterns = match piece.piece_type() {
-            King => PieceMovementBehavior::king(),
-            Queen => PieceMovementBehavior::queen(),
-            Rook => PieceMovementBehavior::rook(),
-            Bishop => PieceMovementBehavior::bishop(),
-            Knight => PieceMovementBehavior::knight(),
-            Pawn => {
-                // Grab piece color
-                let piece_color = *piece.piece_color();
+				PieceMovementBehavior::pawn(piece_color, first_move)
+			}
+		};
 
-                // It is the pawn's first move if it hasn't moved yet
-                let first_move = !move_tracker.has_moved();
+		let (start_x, start_z) = initial_position.xz();
+		let start_vec = Vec3::new(start_x as f32, 0.0, start_z as f32);
 
-                PieceMovementBehavior::pawn(piece_color, first_move)
-            }
-        };
+		let mut moves: Vec<MoveInfo> = Vec::new();
 
-        let (start_x, start_z) = initial_position.xz();
-        let start_vec = Vec3::new(start_x as f32, 0.0, start_z as f32);
+		for (direction, max_magnitude, special_move) in movement_patterns.iter()
+		{
+			let mut magnitude: u8 = 0u8;
 
-        let mut moves: Vec<MoveInfo> = Vec::new();
+			while magnitude < *max_magnitude {
+				magnitude += 1;
 
-        for (direction, max_magnitude, special_opt) in movement_patterns.iter()
-        {
-            let mut l: u8 = 1u8;
-            let pawn_capture =
-                is_pawn && special_opt == &Some(SpecialMovement::PawnCapture);
+				let vector = start_vec + (direction.clone() * magnitude as f32);
 
-            while l <= *max_magnitude {
-                let vector = start_vec + (direction.clone() * l as f32);
+				// If the proposed Position can't exist, break
+				let final_position = match Position::try_from_vec3(vector) {
+					Some(bp) => bp,
+					None => break
+				};
 
-                // If the proposed Position can't exist, break
-                let final_position = match Position::try_from_vec3(vector) {
-                    Some(bp) => bp,
-                    None => break
-                };
+				// Check if there is a piece at the end position. If there
+				// is, we'll record it's color
+				let move_info_opt = determine_move(
+					&initial_position,
+					&final_position,
+					&piece,
+					special_move,
+					&opposing_piece_query
+				);
 
-                // Check if there is a piece at the end position. If there
-                // is, we'll record it's color
-                if let Some((other_entity, other_piece_color)) =
-                    occupied_positions.get(&final_position)
-                {
-                    let same_color = other_piece_color == piece.piece_color();
+				if let Some(move_info) = move_info_opt {
+					if let MoveType::Capture {
+						is_en_passant: _,
+						captured: _
+					} = move_info.move_type
+					{
+						magnitude = *max_magnitude;
+					}
 
-                    // We're breaking as we can't possibly go past this
-                    // piece, but if the piece is of
-                    // the opposite color, then we can still
-                    // move there to capture it. If it's our piece, then we
-                    // can't move there or past it.
-                    // ALSO if we're a pawn
-                    if !same_color || (!same_color && pawn_capture) {
-                        moves.push(MoveInfo {
-                            piece,
-                            initial_position,
-                            final_position,
-                            move_type: MoveType::Capture {
-                                is_en_passant: false,
-                                captured:      *other_entity
-                            }
-                        });
-                    }
+					// Add move to possible moves
+					moves.push(move_info);
+				} else {
+					break;
+				}
+			} // end while
+		} // end for
 
-                    // break while loop
-                    break;
-                }
+		available_moves.0.insert(entity, moves);
+		trace!(?piece, ?initial_position, ?available_moves);
+	}
 
-                l += 1;
-                // If we're a pawn and we're checking capture condition, don't
-                // include this as move
-                if pawn_capture {
-                    continue;
-                }
+	event_writer.send(CalculateAvailableMovesDone)
+}
 
-                // Move is to a legitimate position and there's no piece
-                // in the way
-                moves.push(MoveInfo {
-                    piece,
-                    initial_position,
-                    final_position,
-                    move_type: MoveType::Move
-                });
-            } // end while
-        } // end for
-        available_moves.0.insert(entity, moves);
-        trace!(?piece, ?initial_position, ?available_moves);
-    }
+fn determine_move(
+	initial_position: &Position,
+	final_position: &Position,
+	piece: &Piece,
+	special_move: &MovementType,
+	other_piece_query: &Query<(Entity, &Position, &Piece)>
+) -> Option<MoveInfo> {
+	// Find query result
+	let query_result = other_piece_query
+		.iter()
+		.filter(|&(_, position, _)| {
+			position == final_position && position != initial_position
+		})
+		.last();
 
-    event_writer.send(CalculateAvailableMovesDone)
+	// Find out the space
+	let square_state = match query_result {
+		Some((entity, _, other_piece)) => {
+			match piece.piece_color() == other_piece.piece_color() {
+				true => SquareState::Friendly,
+				false => SquareState::Opposing(entity)
+			}
+		},
+		None => SquareState::Empty
+	};
+
+	let is_pawn = piece.piece_type() == &PieceType::Pawn;
+	let move_type = match square_state {
+		SquareState::Empty => {
+			if is_pawn && special_move != &MovementType::PawnMove {
+				return None;
+			}
+
+			MoveType::Move
+		},
+		SquareState::Opposing(captured) => {
+			if is_pawn && special_move != &MovementType::PawnCapture {
+				return None;
+			}
+
+			let is_en_passant = special_move == &MovementType::EnPassantCapture;
+
+			MoveType::Capture {
+				is_en_passant,
+				captured
+			}
+		},
+		SquareState::Friendly => {
+			return None;
+		}
+	};
+
+	Some(MoveInfo {
+		piece: *piece,
+		initial_position: *initial_position,
+		final_position: *final_position,
+		move_type
+	})
 }

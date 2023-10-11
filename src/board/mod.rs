@@ -12,8 +12,8 @@ use self::selection::SquareSelectPlugin;
 
 pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(SquareSelectPlugin)
-            .add_systems(Startup, spawn::spawn_board);
-    }
+	fn build(&self, app: &mut App) {
+		app.add_plugins(SquareSelectPlugin)
+			.add_systems(Startup, spawn::spawn_board);
+	}
 }

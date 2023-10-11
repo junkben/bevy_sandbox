@@ -21,3 +21,4 @@ use_field_init_shorthand = true
 wrap_comments = true
 trailing_comma = "Never"
 chain_width = 60
+hard_tabs = true
