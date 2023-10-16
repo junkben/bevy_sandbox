@@ -2,11 +2,9 @@ use bevy::prelude::*;
 
 use super::TurnState;
 use crate::{
-	move_tracker::MoveTracker,
 	physics::TranslationalMotionDone,
 	piece::{MovePieceToBoardPosition, Piece},
-	position::Position,
-	resources::MoveHistory,
+	resources::{CastleAvailability, CastleType, MoveHistory},
 	MoveInfo, MoveType
 };
 
@@ -36,17 +34,10 @@ fn confirm_move(
 	mut event_reader: EventReader<MoveSelected>,
 	mut event_writer: EventWriter<MovePieceToBoardPosition>,
 	mut move_history: ResMut<MoveHistory>,
-	mut piece_query: Query<(&mut Position, &mut MoveTracker), With<Piece>>
+	castle_availability: Res<CastleAvailability>
 ) {
 	let Some(event) = event_reader.into_iter().last() else {
 		error!("not exactly one MoveSelected event");
-		return;
-	};
-
-	let Ok((mut position, mut move_tracker)) =
-		piece_query.get_mut(event.entity)
-	else {
-		error!("no entity matches piece query");
 		return;
 	};
 
@@ -56,13 +47,6 @@ fn confirm_move(
 		commands.entity(captured).despawn();
 	}
 
-	// Update position of piece to new position
-	position.set_rank(*event.move_info.final_position.rank());
-	position.set_file(*event.move_info.final_position.file());
-
-	// Increment the move tracker
-	move_tracker.inc();
-
 	// Send the event to physically move the piece to the new board position
 	event_writer.send(MovePieceToBoardPosition {
 		entity:      event.entity,
@@ -71,6 +55,40 @@ fn confirm_move(
 
 	// Add the move to the MoveHistory resource
 	move_history.append_move(event.move_info);
+
+	// Conditionally do some other stuff
+	match event.move_info.move_type {
+		// If it's a move, we're done
+		MoveType::Move => return,
+		// If it's a capture, despawn the captured entity
+		MoveType::Capture { captured, .. } => {
+			commands.entity(captured).despawn();
+		},
+		MoveType::PawnPromotion { .. } => todo!(),
+		// If it's a castle, we need to move the rook too
+		MoveType::Castle(castle_type) => {
+			let entities_opt = match castle_type {
+				CastleType::WK => &castle_availability.white_kingside,
+				CastleType::WQ => &castle_availability.white_queenside,
+				CastleType::BK => &castle_availability.black_kingside,
+				CastleType::BQ => &castle_availability.black_queenside
+			};
+
+			let Some(entities) = entities_opt else {
+				unreachable!()
+			};
+
+			// Send the event to physically move the piece to the new board
+			// position
+			event_writer.send(MovePieceToBoardPosition {
+				entity:      entities.rook,
+				destination: entities.rook_destination
+			});
+		},
+		MoveType::Check => todo!(),
+		MoveType::Checkmate => todo!(),
+		MoveType::DrawOffer => todo!()
+	}
 }
 
 fn wait_for_piece_motion_to_complete(

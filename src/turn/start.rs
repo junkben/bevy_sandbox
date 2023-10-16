@@ -6,7 +6,8 @@ use crate::{
 	camera::SetCameraTargetAlpha,
 	piece::PieceColor,
 	resources::{
-		ActiveColor, CalculateAvailableMoves, CalculateAvailableMovesDone
+		ActiveColor, CalculateAvailableMoves, CalculateAvailableMovesDone,
+		CheckCastleAvailability, CheckCastleAvailabilityDone
 	},
 	GameSettings
 };
@@ -20,7 +21,7 @@ impl Plugin for TurnStartPlugin {
 			.add_event::<CalculateAvailableMovesDone>()
 			.add_systems(
 				OnEnter(TurnState::Start),
-				(start_calculate_available_moves, move_camera)
+				(check_castle_availability, move_camera)
 			)
 			.add_systems(
 				Update,
@@ -32,20 +33,28 @@ impl Plugin for TurnStartPlugin {
 /// Tracks whose turn it is. White always goes first.
 #[derive(Resource, Default)]
 pub struct TurnStartChecklist {
-	moved_camera:     bool,
-	calculated_moves: bool
+	moved_camera:              bool,
+	check_castle_availability: bool,
+	calculated_moves:          bool
 }
 
 impl TurnStartChecklist {
-	fn done(&mut self) -> bool { self.moved_camera && self.calculated_moves }
+	fn done(&mut self) -> bool {
+		self.moved_camera
+			&& self.check_castle_availability
+			&& self.calculated_moves
+	}
 
 	fn reset(&mut self) {
 		self.moved_camera = false;
+		self.check_castle_availability = false;
 		self.calculated_moves = false;
 	}
 }
 
 fn update_checklist(
+	mut event_reader_castle: EventReader<CheckCastleAvailabilityDone>,
+	mut event_writer_moves: EventWriter<CalculateAvailableMoves>,
 	mut event_reader_moves: EventReader<CalculateAvailableMovesDone>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
 	mut turn_state: ResMut<NextState<TurnState>>
@@ -55,19 +64,26 @@ fn update_checklist(
 		debug!("consumed CalculateAvailableMovesDone");
 	};
 
+	if let Some(_) = event_reader_castle.iter().last() {
+		start_turn_checklist.check_castle_availability = true;
+		debug!("consumed CheckCastleAvailabilityDone");
+
+		event_writer_moves.send(CalculateAvailableMoves)
+	};
+
 	if start_turn_checklist.done() {
 		start_turn_checklist.reset();
 		debug!("moving to {:?}", TurnState::SelectMove);
 		turn_state.set(TurnState::SelectMove);
 	} else {
-		debug!("waiting for move calculations to finish")
+		debug!("not done with start turn checklist yet...")
 	}
 }
 
-fn start_calculate_available_moves(
-	mut event_writer: EventWriter<CalculateAvailableMoves>
+fn check_castle_availability(
+	mut event_writer: EventWriter<CheckCastleAvailability>
 ) {
-	event_writer.send(CalculateAvailableMoves)
+	event_writer.send(CheckCastleAvailability)
 }
 
 const WHITE_ALPHA: f32 = 0.0;

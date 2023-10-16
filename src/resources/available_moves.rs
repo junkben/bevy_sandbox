@@ -2,11 +2,15 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
+use super::CastleAvailability;
 use crate::{
 	move_info::MoveInfo,
 	move_tracker::MoveTracker,
-	piece::{MovementType, Piece, PieceMovementBehavior, PieceType},
+	piece::{
+		MovementType, Piece, PieceColor, PieceMovementBehavior, PieceType
+	},
 	position::*,
+	resources::CastleType,
 	MoveType
 };
 
@@ -69,7 +73,7 @@ impl AvailableMoves {
 }
 
 pub enum SquareState {
-	Empty,
+	Vacant,
 	Opposing(Entity),
 	Friendly
 }
@@ -84,6 +88,7 @@ fn calculate_available_moves(
 	mut event_reader: EventReader<CalculateAvailableMoves>,
 	mut event_writer: EventWriter<CalculateAvailableMovesDone>,
 	mut available_moves: ResMut<AvailableMoves>,
+	castle_availability: Res<CastleAvailability>,
 	mut piece_query: Query<(Entity, &Piece, &Position, &MoveTracker)>,
 	opposing_piece_query: Query<(Entity, &Position, &Piece)>
 ) {
@@ -142,6 +147,7 @@ fn calculate_available_moves(
 					&final_position,
 					&piece,
 					special_move,
+					&castle_availability,
 					&opposing_piece_query
 				);
 
@@ -174,8 +180,19 @@ fn determine_move(
 	final_position: &Position,
 	piece: &Piece,
 	special_move: &MovementType,
+	castle_availability: &Res<CastleAvailability>,
 	other_piece_query: &Query<(Entity, &Position, &Piece)>
 ) -> Option<MoveInfo> {
+	if let Some(castle_move) = determine_castle_move(
+		initial_position,
+		final_position,
+		piece,
+		special_move,
+		castle_availability
+	) {
+		return Some(castle_move);
+	}
+
 	// Find query result
 	let query_result = other_piece_query
 		.iter()
@@ -192,20 +209,23 @@ fn determine_move(
 				false => SquareState::Opposing(entity)
 			}
 		},
-		None => SquareState::Empty
+		None => SquareState::Vacant
 	};
 
-	let is_pawn = piece.piece_type() == &PieceType::Pawn;
 	let move_type = match square_state {
-		SquareState::Empty => {
-			if is_pawn && special_move != &MovementType::PawnMove {
+		SquareState::Vacant => {
+			if piece.piece_type() == &PieceType::Pawn
+				&& special_move != &MovementType::PawnMove
+			{
 				return None;
 			}
 
 			MoveType::Move
 		},
 		SquareState::Opposing(captured) => {
-			if is_pawn && special_move != &MovementType::PawnCapture {
+			if piece.piece_type() == &PieceType::Pawn
+				&& special_move != &MovementType::PawnCapture
+			{
 				return None;
 			}
 
@@ -227,4 +247,45 @@ fn determine_move(
 		final_position: *final_position,
 		move_type
 	})
+}
+
+fn determine_castle_move(
+	initial_position: &Position,
+	final_position: &Position,
+	piece: &Piece,
+	special_move: &MovementType,
+	castle_availability: &Res<CastleAvailability>
+) -> Option<MoveInfo> {
+	if piece.piece_type() != &PieceType::King {
+		return None;
+	}
+
+	use MovementType::*;
+	use PieceColor::*;
+	let move_type = match (special_move, piece.piece_color()) {
+		(CastleKingside, White) => match castle_availability.white_kingside {
+			Some(_) => MoveType::Castle(CastleType::WK),
+			None => return None
+		},
+		(CastleKingside, Black) => match castle_availability.black_kingside {
+			Some(_) => MoveType::Castle(CastleType::BK),
+			None => return None
+		},
+		(CastleQueenside, White) => match castle_availability.white_queenside {
+			Some(_) => MoveType::Castle(CastleType::WQ),
+			None => return None
+		},
+		(CastleQueenside, Black) => match castle_availability.black_queenside {
+			Some(_) => MoveType::Castle(CastleType::BQ),
+			None => return None
+		},
+		_ => return None
+	};
+
+	return Some(MoveInfo {
+		piece: *piece,
+		initial_position: *initial_position,
+		final_position: *final_position,
+		move_type
+	});
 }

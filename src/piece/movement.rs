@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{physics::TranslationalMotionStart, position::Position};
+use crate::{
+	move_tracker::MoveTracker, physics::TranslationalMotionStart,
+	position::Position
+};
 
 pub struct PieceMovementPlugin;
 impl Plugin for PieceMovementPlugin {
@@ -24,18 +27,25 @@ pub struct MovePieceToBoardPosition {
 fn move_piece_to_board_position(
 	mut events: EventReader<MovePieceToBoardPosition>,
 	mut event_writer: EventWriter<TranslationalMotionStart>,
-	entities: Query<Entity>
+	mut entities: Query<(Entity, &mut Position, &mut MoveTracker), With<Piece>>
 ) {
 	for event in events.into_iter() {
-		let Ok(entity) = entities.get(event.entity) else {
+		let Ok((entity, mut position, mut mt)) = entities.get_mut(event.entity)
+		else {
 			error!("no matching entity");
 			return;
 		};
 
-		let destination = event.destination.translation();
+		// Update position of piece to new position
+		position.set_rank(*event.destination.rank());
+		position.set_file(*event.destination.file());
+
+		// Increment the move tracker
+		mt.inc();
+
 		event_writer.send(TranslationalMotionStart {
 			entity,
-			destination
+			destination: event.destination.translation()
 		});
 	}
 }
@@ -45,7 +55,9 @@ pub enum MovementType {
 	Move,
 	PawnMove,
 	PawnCapture,
-	EnPassantCapture
+	EnPassantCapture,
+	CastleKingside,
+	CastleQueenside
 }
 
 #[derive(Debug)]
@@ -55,6 +67,7 @@ impl PieceMovementBehavior {
 	/// Kings can move 1 square vertically, horizontally, or diagonally
 	pub fn king() -> PieceMovementBehavior {
 		PieceMovementBehavior(vec![
+			// Normal move
 			(N.vec3(), 1, MovementType::Move),
 			(NE.vec3(), 1, MovementType::Move),
 			(E.vec3(), 1, MovementType::Move),
@@ -63,6 +76,10 @@ impl PieceMovementBehavior {
 			(SW.vec3(), 1, MovementType::Move),
 			(W.vec3(), 1, MovementType::Move),
 			(NW.vec3(), 1, MovementType::Move),
+			// Castle kingside
+			(E.vec3() * 2.0, 1, MovementType::CastleKingside),
+			// Castle queenside
+			(W.vec3() * 2.0, 1, MovementType::CastleQueenside),
 		])
 	}
 
@@ -70,6 +87,7 @@ impl PieceMovementBehavior {
 	/// or move 2 squares horizontally and 1 square vertically
 	pub fn knight() -> PieceMovementBehavior {
 		PieceMovementBehavior(vec![
+			// Normal move
 			(NNE.vec3(), 1, MovementType::Move),
 			(ENE.vec3(), 1, MovementType::Move),
 			(ESE.vec3(), 1, MovementType::Move),
@@ -128,10 +146,15 @@ impl PieceMovementBehavior {
 	/// Rooks can move any number of squares vertically or horizontally
 	pub fn rook() -> PieceMovementBehavior {
 		PieceMovementBehavior(vec![
+			// Normal move
 			(N.vec3(), u8::MAX, MovementType::Move),
 			(E.vec3(), u8::MAX, MovementType::Move),
 			(S.vec3(), u8::MAX, MovementType::Move),
 			(W.vec3(), u8::MAX, MovementType::Move),
+			// Castle kingside
+			(E.vec3() * 2.0, 1, MovementType::CastleKingside),
+			// Castle queenside
+			(W.vec3() * 3.0, 1, MovementType::CastleQueenside),
 		])
 	}
 
@@ -174,7 +197,7 @@ enum Direction {
 
 use Direction::*;
 
-use super::PieceColor;
+use super::{Piece, PieceColor};
 
 impl Direction {
 	pub const fn vec3(&self) -> Vec3 {

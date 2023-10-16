@@ -2,7 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
 	piece::{Piece, PieceType},
-	position::Position
+	position::Position,
+	resources::CastleType
 };
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -23,9 +24,7 @@ pub enum MoveType {
 	PawnPromotion {
 		promoted_to: Piece
 	},
-	Castle {
-		is_kingside: bool
-	},
+	Castle(CastleType),
 	Check,
 	Checkmate,
 	DrawOffer
@@ -53,9 +52,9 @@ impl std::fmt::Display for MoveInfo {
 			// TODO: Cover case of Capture and Promotion simultaneously
 			MoveType::PawnPromotion { promoted_to } =>
 				format!("{}{}{}", self.piece, self.final_position, promoted_to),
-			MoveType::Castle { is_kingside } => match is_kingside {
-				true => format!("0-0"),
-				false => format!("0-0-0")
+			MoveType::Castle(castle_type) => match castle_type {
+				CastleType::WK | CastleType::BK => format!("0-0"),
+				CastleType::WQ | CastleType::BQ => format!("0-0-0")
 			},
 			MoveType::Check =>
 				format!("{}{}+", self.piece, self.final_position),
