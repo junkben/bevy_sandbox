@@ -60,8 +60,14 @@ fn confirm_move(
 	match event.move_info.move_type {
 		// If it's a move, we're done
 		MoveType::Move => return,
+		// If it's a pawn first move, we're done
+		MoveType::FirstMove => return,
 		// If it's a capture, despawn the captured entity
 		MoveType::Capture { captured, .. } => {
+			commands.entity(captured).despawn();
+		},
+		// If it's a capture en passant, despawn the captured entity
+		MoveType::CaptureEnPassant { captured, .. } => {
 			commands.entity(captured).despawn();
 		},
 		MoveType::PawnPromotion { .. } => todo!(),

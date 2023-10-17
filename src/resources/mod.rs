@@ -12,6 +12,7 @@ macro_rules! expose_mod_resource {
 			fn build(&self, app: &mut App) {
 				app.add_plugins(available_moves::AvailableMovesPlugin);
 				app.add_plugins(castle_availability::CastleAvailabilityPlugin);
+				app.add_plugins(en_passant::EnPassantPlugin);
 				$(
 					app.insert_resource($r::default());
 				)*
@@ -24,7 +25,7 @@ expose_mod_resource!(
 	active_color::ActiveColor,
 	available_moves::AvailableMoves,
 	castle_availability::CastleAvailability,
-	en_passant_tracker::EnPassantTracker,
+	en_passant::EnPassantTracker,
 	game_mode::GameMode,
 	halfmove_tracker::HalfmoveTracker,
 	move_history::MoveHistory,
@@ -38,3 +39,4 @@ pub use available_moves::{
 pub use castle_availability::{
 	CastleType, CheckCastleAvailability, CheckCastleAvailabilityDone
 };
+pub use en_passant::{CheckEnPassant, CheckEnPassantDone};

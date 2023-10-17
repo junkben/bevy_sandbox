@@ -56,6 +56,7 @@ pub enum MovementType {
 	PawnMove,
 	PawnCapture,
 	EnPassantCapture,
+	PawnFirstMove,
 	CastleKingside,
 	CastleQueenside
 }
@@ -100,32 +101,24 @@ impl PieceMovementBehavior {
 	}
 
 	/// Pawn movement is complicated
-	pub fn pawn(color: PieceColor, first_move: bool) -> PieceMovementBehavior {
-		let mut move_vec: Vec<(Vec3, u8, MovementType)> = vec![];
-
-		let max_magnitude: u8 = if first_move { 2 } else { 1 };
-		match color {
-			PieceColor::White => {
-				move_vec.push((
-					N.vec3(),
-					max_magnitude,
-					MovementType::PawnMove
-				));
-				move_vec.push((NE.vec3(), 1, MovementType::PawnCapture));
-				move_vec.push((NW.vec3(), 1, MovementType::PawnCapture));
-			},
-			PieceColor::Black => {
-				move_vec.push((
-					S.vec3(),
-					max_magnitude,
-					MovementType::PawnMove
-				));
-				move_vec.push((SE.vec3(), 1, MovementType::PawnCapture));
-				move_vec.push((SW.vec3(), 1, MovementType::PawnCapture));
-			}
+	pub fn pawn(color: PieceColor) -> PieceMovementBehavior {
+		let (diag_w, neut, diag_e) = match color {
+			PieceColor::White => (NW, N, NE),
+			PieceColor::Black => (SW, S, SE)
 		};
 
-		PieceMovementBehavior(move_vec)
+		PieceMovementBehavior(vec![
+			// Pawn normal move
+			(neut.vec3(), 1, MovementType::PawnMove),
+			// Pawn first move
+			(neut.vec3() * 2.0, 1, MovementType::PawnFirstMove),
+			// Pawn normal capture
+			(diag_e.vec3(), 1, MovementType::PawnCapture),
+			(diag_w.vec3(), 1, MovementType::PawnCapture),
+			// Pawn en passant capture
+			(diag_e.vec3(), 1, MovementType::EnPassantCapture),
+			(diag_w.vec3(), 1, MovementType::EnPassantCapture),
+		])
 	}
 
 	/// Queens can move any number of squares vertically, horizontally, or

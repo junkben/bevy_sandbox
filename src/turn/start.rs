@@ -7,7 +7,8 @@ use crate::{
 	piece::PieceColor,
 	resources::{
 		ActiveColor, CalculateAvailableMoves, CalculateAvailableMovesDone,
-		CheckCastleAvailability, CheckCastleAvailabilityDone
+		CheckCastleAvailability, CheckCastleAvailabilityDone, CheckEnPassant,
+		CheckEnPassantDone
 	},
 	GameSettings
 };
@@ -35,6 +36,7 @@ impl Plugin for TurnStartPlugin {
 pub struct TurnStartChecklist {
 	moved_camera:              bool,
 	check_castle_availability: bool,
+	check_en_passant:          bool,
 	calculated_moves:          bool
 }
 
@@ -42,12 +44,14 @@ impl TurnStartChecklist {
 	fn done(&mut self) -> bool {
 		self.moved_camera
 			&& self.check_castle_availability
+			&& self.check_en_passant
 			&& self.calculated_moves
 	}
 
 	fn reset(&mut self) {
 		self.moved_camera = false;
 		self.check_castle_availability = false;
+		self.check_en_passant = false;
 		self.calculated_moves = false;
 	}
 }
@@ -56,6 +60,8 @@ fn update_checklist(
 	mut event_reader_castle: EventReader<CheckCastleAvailabilityDone>,
 	mut event_writer_moves: EventWriter<CalculateAvailableMoves>,
 	mut event_reader_moves: EventReader<CalculateAvailableMovesDone>,
+	mut event_writer_en_passant: EventWriter<CheckEnPassant>,
+	mut event_reader_en_passant: EventReader<CheckEnPassantDone>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
 	mut turn_state: ResMut<NextState<TurnState>>
 ) {
@@ -64,11 +70,18 @@ fn update_checklist(
 		debug!("consumed CalculateAvailableMovesDone");
 	};
 
+	if let Some(_) = event_reader_en_passant.iter().last() {
+		start_turn_checklist.check_en_passant = true;
+		debug!("consumed CheckEnPassantDone");
+
+		event_writer_moves.send(CalculateAvailableMoves)
+	};
+
 	if let Some(_) = event_reader_castle.iter().last() {
 		start_turn_checklist.check_castle_availability = true;
 		debug!("consumed CheckCastleAvailabilityDone");
 
-		event_writer_moves.send(CalculateAvailableMoves)
+		event_writer_en_passant.send(CheckEnPassant)
 	};
 
 	if start_turn_checklist.done() {

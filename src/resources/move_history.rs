@@ -25,8 +25,19 @@ impl std::fmt::Display for MoveHistory {
 }
 
 impl MoveHistory {
+	pub fn len(&self) -> usize { self.0.len() }
+
+	pub fn get(&self, index: usize) -> Option<&MoveInfo> { self.0.get(index) }
+
 	pub fn append_move(&mut self, move_info: MoveInfo) {
 		self.0.push(move_info);
 		info!("{}", self)
+	}
+
+	pub fn latest_move(&self) -> Option<&MoveInfo> {
+		match self.len() {
+			0 => None,
+			_ => self.get(self.len() - 1)
+		}
 	}
 }

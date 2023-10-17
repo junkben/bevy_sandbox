@@ -12,13 +12,19 @@ pub enum MoveType {
 	#[default]
 	Move,
 
+	/// A pawn can move differently if it hasn't moved yet
+	FirstMove,
+
 	/// A piece is moved to a space occupied by an opponent's piece, which is
 	/// captured and removed from play. With the sole exception of en passant,
 	/// all pieces capture by moving to the square that the opponent's piece
 	/// occupies.
 	Capture {
-		is_en_passant: bool,
-		captured:      Entity
+		captured: Entity
+	},
+
+	CaptureEnPassant {
+		captured: Entity
 	},
 
 	PawnPromotion {
@@ -32,6 +38,7 @@ pub enum MoveType {
 
 #[derive(Debug, Copy, Clone)]
 pub struct MoveInfo {
+	pub entity:           Entity,
 	pub piece:            Piece,
 	pub initial_position: Position,
 	pub final_position:   Position,
@@ -40,28 +47,25 @@ pub struct MoveInfo {
 
 impl std::fmt::Display for MoveInfo {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		let (p, fp) = (self.piece, self.final_position);
+		use MoveType::*;
 		write!(f, "{}", match self.move_type {
-			MoveType::Move => match self.piece.piece_type() {
-				PieceType::Pawn => format!("{}", self.final_position),
-				_ => format!("{}{}", self.piece, self.final_position)
+			Move | FirstMove => match p.piece_type() {
+				PieceType::Pawn => format!("{}", fp),
+				_ => format!("{}{}", p, fp)
 			},
-			MoveType::Capture { is_en_passant, .. } => match is_en_passant {
-				true => format!("{}x{} e.p.", self.piece, self.final_position),
-				false => format!("{}x{}", self.piece, self.final_position)
-			},
+			Capture { .. } => format!("{}x{}", p, fp),
+			CaptureEnPassant { .. } => format!("{}x{} e.p.", p, fp),
 			// TODO: Cover case of Capture and Promotion simultaneously
-			MoveType::PawnPromotion { promoted_to } =>
-				format!("{}{}{}", self.piece, self.final_position, promoted_to),
-			MoveType::Castle(castle_type) => match castle_type {
+			PawnPromotion { promoted_to } =>
+				format!("{}{}{}", p, fp, promoted_to),
+			Castle(castle_type) => match castle_type {
 				CastleType::WK | CastleType::BK => format!("0-0"),
 				CastleType::WQ | CastleType::BQ => format!("0-0-0")
 			},
-			MoveType::Check =>
-				format!("{}{}+", self.piece, self.final_position),
-			MoveType::Checkmate =>
-				format!("{}{}#", self.piece, self.final_position),
-			MoveType::DrawOffer =>
-				format!("{}{}=", self.piece, self.final_position),
+			Check => format!("{}{}+", p, fp),
+			Checkmate => format!("{}{}#", p, fp),
+			DrawOffer => format!("{}{}=", p, fp)
 		})
 	}
 }
