@@ -56,21 +56,14 @@ pub struct Piece {
 
 impl std::fmt::Display for Piece {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		use PieceColor::*;
 		use PieceType::*;
-		write!(f, "{}", match (&self.color, &self.piece_type) {
-			(White, King) => 'K',
-			(White, Queen) => 'Q',
-			(White, Rook) => 'R',
-			(White, Bishop) => 'B',
-			(White, Knight) => 'N',
-			(White, Pawn) => 'P',
-			(Black, King) => 'k',
-			(Black, Queen) => 'q',
-			(Black, Rook) => 'r',
-			(Black, Bishop) => 'b',
-			(Black, Knight) => 'n',
-			(Black, Pawn) => 'p'
+		write!(f, "{}", match &self.piece_type {
+			King => 'K',
+			Queen => 'Q',
+			Rook => 'R',
+			Bishop => 'B',
+			Knight => 'N',
+			Pawn => 'P'
 		})
 	}
 }

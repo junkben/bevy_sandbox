@@ -10,8 +10,7 @@ impl Plugin for CastleAvailabilityPlugin {
 			.add_event::<CheckCastleAvailabilityDone>()
 			.add_systems(
 				Update,
-				check_castle_availability
-					.run_if(on_event::<CheckCastleAvailability>())
+				handle_event.run_if(on_event::<CheckCastleAvailability>())
 			);
 	}
 }
@@ -21,6 +20,37 @@ pub struct CheckCastleAvailability;
 
 #[derive(Event)]
 pub struct CheckCastleAvailabilityDone;
+
+fn handle_event(
+	mut commands: Commands,
+	mut er: EventReader<CheckCastleAvailability>,
+	mut ew: EventWriter<CheckCastleAvailabilityDone>,
+	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>
+) {
+	// Consume CheckCastleAvailability
+	let Some(_) = er.into_iter().last() else {
+		error!("not exactly one CheckCastleAvailability event");
+		return;
+	};
+
+	let castle_availability = determine_castle_availability(query_piece);
+
+	debug!(?castle_availability);
+	commands.insert_resource(castle_availability);
+	ew.send(CheckCastleAvailabilityDone)
+}
+
+pub fn determine_castle_availability(
+	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>
+) -> CastleAvailability {
+	use CastleType::*;
+	CastleAvailability {
+		white_kingside:  WK.check_can_castle(&query_piece),
+		white_queenside: WQ.check_can_castle(&query_piece),
+		black_kingside:  BK.check_can_castle(&query_piece),
+		black_queenside: BQ.check_can_castle(&query_piece)
+	}
+}
 
 #[derive(Debug)]
 pub struct CastleEntities {
@@ -135,9 +165,9 @@ impl CastleType {
 
 	fn rook_entity(
 		&self,
-		piece_query: &Query<(Entity, &Piece, &Position, &MoveTracker)>
+		query_piece: &Query<(Entity, &Piece, &Position, &MoveTracker)>
 	) -> Option<Entity> {
-		for (entity, piece, position, _) in piece_query.iter() {
+		for (entity, piece, position, _) in query_piece.iter() {
 			if piece == self.rook_piece() && position == self.rook_position() {
 				return Some(entity);
 			}
@@ -148,9 +178,9 @@ impl CastleType {
 
 	fn king_entity(
 		&self,
-		piece_query: &Query<(Entity, &Piece, &Position, &MoveTracker)>
+		query_piece: &Query<(Entity, &Piece, &Position, &MoveTracker)>
 	) -> Option<Entity> {
-		for (entity, piece, position, _) in piece_query.iter() {
+		for (entity, piece, position, _) in query_piece.iter() {
 			if piece == self.king_piece() && position == self.king_position() {
 				return Some(entity);
 			}
@@ -174,9 +204,9 @@ impl CastleType {
 
 	fn rook_has_moved(
 		&self,
-		piece_query: &Query<(Entity, &Piece, &Position, &MoveTracker)>
+		query_piece: &Query<(Entity, &Piece, &Position, &MoveTracker)>
 	) -> Option<bool> {
-		for (_, piece, position, move_tracker) in piece_query.iter() {
+		for (_, piece, position, move_tracker) in query_piece.iter() {
 			if piece == self.rook_piece() && position == self.rook_position() {
 				return Some(move_tracker.has_moved());
 			}
@@ -187,9 +217,9 @@ impl CastleType {
 
 	fn path_is_clear(
 		&self,
-		piece_query: &Query<(Entity, &Piece, &Position, &MoveTracker)>
+		query_piece: &Query<(Entity, &Piece, &Position, &MoveTracker)>
 	) -> bool {
-		for (_, _, position, _) in piece_query.iter() {
+		for (_, _, position, _) in query_piece.iter() {
 			if self.gap_positions().find(|&p| p == position).is_some() {
 				return false;
 			}
@@ -198,49 +228,21 @@ impl CastleType {
 		return true;
 	}
 
-	pub fn update_castle_availability(
-		mut ca: ResMut<CastleAvailability>,
-		piece_query: Query<(Entity, &Piece, &Position, &MoveTracker)>
-	) {
-		ca.white_kingside = Self::WK.check_can_castle(&piece_query);
-		ca.white_queenside = Self::WQ.check_can_castle(&piece_query);
-		ca.black_kingside = Self::BK.check_can_castle(&piece_query);
-		ca.black_queenside = Self::BQ.check_can_castle(&piece_query);
-		debug!(?ca)
-	}
-
 	fn check_can_castle(
 		&self,
-		piece_query: &Query<(Entity, &Piece, &Position, &MoveTracker)>
+		query_piece: &Query<(Entity, &Piece, &Position, &MoveTracker)>
 	) -> Option<CastleEntities> {
-		let rook_moved = self.rook_has_moved(piece_query)?;
-		let king_moved = self.king_has_moved(piece_query)?;
-		let path_is_clear = self.path_is_clear(piece_query);
+		let rook_moved = self.rook_has_moved(query_piece)?;
+		let king_moved = self.king_has_moved(query_piece)?;
+		let path_is_clear = self.path_is_clear(query_piece);
 
 		match !rook_moved && !king_moved && path_is_clear {
 			true => Some(CastleEntities {
-				king:             self.king_entity(piece_query)?,
-				rook:             self.rook_entity(piece_query)?,
+				king:             self.king_entity(query_piece)?,
+				rook:             self.rook_entity(query_piece)?,
 				rook_destination: self.rook_destination().clone()
 			}),
 			false => None
 		}
 	}
-}
-
-fn check_castle_availability(
-	mut event_reader: EventReader<CheckCastleAvailability>,
-	mut event_writer: EventWriter<CheckCastleAvailabilityDone>,
-	castle_availability: ResMut<CastleAvailability>,
-	piece_query: Query<(Entity, &Piece, &Position, &MoveTracker)>
-) {
-	// Consume CheckCastleAvailability
-	let Some(_) = event_reader.into_iter().last() else {
-		error!("not exactly one CheckCastleAvailability event");
-		return;
-	};
-
-	CastleType::update_castle_availability(castle_availability, piece_query);
-
-	event_writer.send(CheckCastleAvailabilityDone)
 }

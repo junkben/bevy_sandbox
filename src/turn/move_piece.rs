@@ -57,22 +57,16 @@ fn confirm_move(
 	move_history.append_move(event.move_info);
 
 	// Conditionally do some other stuff
+	use MoveType::*;
 	match event.move_info.move_type {
 		// If it's a move, we're done
-		MoveType::Move => return,
-		// If it's a pawn first move, we're done
-		MoveType::FirstMove => return,
+		Move | FirstMove => return,
 		// If it's a capture, despawn the captured entity
-		MoveType::Capture { captured, .. } => {
+		Capture { captured, .. } | CaptureEnPassant { captured, .. } => {
 			commands.entity(captured).despawn();
 		},
-		// If it's a capture en passant, despawn the captured entity
-		MoveType::CaptureEnPassant { captured, .. } => {
-			commands.entity(captured).despawn();
-		},
-		MoveType::PawnPromotion { .. } => todo!(),
 		// If it's a castle, we need to move the rook too
-		MoveType::Castle(castle_type) => {
+		Castle(castle_type) => {
 			let entities_opt = match castle_type {
 				CastleType::WK => &castle_availability.white_kingside,
 				CastleType::WQ => &castle_availability.white_queenside,
@@ -90,10 +84,7 @@ fn confirm_move(
 				entity:      entities.rook,
 				destination: entities.rook_destination
 			});
-		},
-		MoveType::Check => todo!(),
-		MoveType::Checkmate => todo!(),
-		MoveType::DrawOffer => todo!()
+		}
 	}
 }
 

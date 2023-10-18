@@ -8,7 +8,8 @@ use crate::{
 	resources::{
 		ActiveColor, CalculateAvailableMoves, CalculateAvailableMovesDone,
 		CheckCastleAvailability, CheckCastleAvailabilityDone, CheckEnPassant,
-		CheckEnPassantDone
+		CheckEnPassantDone, UpdateAttackedPositions,
+		UpdateAttackedPositionsDone
 	},
 	GameSettings
 };
@@ -37,7 +38,8 @@ pub struct TurnStartChecklist {
 	moved_camera:              bool,
 	check_castle_availability: bool,
 	check_en_passant:          bool,
-	calculated_moves:          bool
+	calculated_moves:          bool,
+	update_attacked_positions: bool
 }
 
 impl TurnStartChecklist {
@@ -46,6 +48,7 @@ impl TurnStartChecklist {
 			&& self.check_castle_availability
 			&& self.check_en_passant
 			&& self.calculated_moves
+			&& self.update_attacked_positions
 	}
 
 	fn reset(&mut self) {
@@ -53,6 +56,7 @@ impl TurnStartChecklist {
 		self.check_castle_availability = false;
 		self.check_en_passant = false;
 		self.calculated_moves = false;
+		self.update_attacked_positions = false;
 	}
 }
 
@@ -60,14 +64,23 @@ fn update_checklist(
 	mut event_reader_castle: EventReader<CheckCastleAvailabilityDone>,
 	mut event_writer_moves: EventWriter<CalculateAvailableMoves>,
 	mut event_reader_moves: EventReader<CalculateAvailableMovesDone>,
+	mut event_writer_attacked: EventWriter<UpdateAttackedPositions>,
+	mut event_reader_attacked: EventReader<UpdateAttackedPositionsDone>,
 	mut event_writer_en_passant: EventWriter<CheckEnPassant>,
 	mut event_reader_en_passant: EventReader<CheckEnPassantDone>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
 	mut turn_state: ResMut<NextState<TurnState>>
 ) {
+	if let Some(_) = event_reader_attacked.iter().last() {
+		start_turn_checklist.update_attacked_positions = true;
+		debug!("consumed UpdateAttackedPositionsDone");
+	};
+
 	if let Some(_) = event_reader_moves.iter().last() {
 		start_turn_checklist.calculated_moves = true;
 		debug!("consumed CalculateAvailableMovesDone");
+
+		event_writer_attacked.send(UpdateAttackedPositions)
 	};
 
 	if let Some(_) = event_reader_en_passant.iter().last() {

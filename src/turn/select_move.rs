@@ -114,7 +114,7 @@ fn update_square_selection(
 	for (position, mut pickable) in square_query.iter_mut() {
 		// Add selection if the square's position is an available move
 		pickable.should_emit_events =
-			available_moves.contains_move_to(&event.entity, position);
+			available_moves.entity_has_move_to(&event.entity, position);
 	}
 }
 

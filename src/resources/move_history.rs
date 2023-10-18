@@ -9,7 +9,7 @@ impl std::fmt::Display for MoveHistory {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		for (i, moves) in self.0[..].chunks(2).enumerate() {
 			// Start on newline, write turn number
-			write!(f, "\n{}. ", i + 1)?;
+			write!(f, "{}. ", i + 1)?;
 
 			// Write White move
 			write!(f, "{} ", moves[0])?;

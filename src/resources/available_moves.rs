@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use super::{CastleAvailability, EnPassantTracker};
+use super::{CastleAvailability, EnPassantState};
 use crate::{
 	move_info::MoveInfo,
 	move_tracker::MoveTracker,
@@ -22,10 +22,41 @@ impl Plugin for AvailableMovesPlugin {
 			.add_event::<CalculateAvailableMovesDone>()
 			.add_systems(
 				Update,
-				calculate_available_moves
-					.run_if(on_event::<CalculateAvailableMoves>())
+				handle_event.run_if(on_event::<CalculateAvailableMoves>())
 			);
 	}
+}
+
+#[derive(Event)]
+pub struct CalculateAvailableMoves;
+
+#[derive(Event)]
+pub struct CalculateAvailableMovesDone;
+
+fn handle_event(
+	mut commands: Commands,
+	mut er: EventReader<CalculateAvailableMoves>,
+	mut ew: EventWriter<CalculateAvailableMovesDone>,
+	res_castle_availability: Res<CastleAvailability>,
+	res_en_passant_tracker: Res<EnPassantState>,
+	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>,
+	query_opposing_piece: Query<(Entity, &Position, &Piece)>
+) {
+	// Consume CalculateAvailableMoves
+	let Some(_) = er.into_iter().last() else {
+		error!("not exactly one CalculateAvailableMoves event");
+		return;
+	};
+
+	let available_moves = calculate_available_moves(
+		res_castle_availability.as_ref(),
+		res_en_passant_tracker.as_ref(),
+		query_piece,
+		query_opposing_piece
+	);
+
+	commands.insert_resource(available_moves);
+	ew.send(CalculateAvailableMovesDone)
 }
 
 /// A component that tracks the available positions an entity can move to
@@ -39,7 +70,21 @@ impl std::fmt::Display for AvailableMoves {
 }
 
 impl AvailableMoves {
-	pub fn contains_move_to(
+	pub fn all_moves(&self) -> impl Iterator<Item = &MoveInfo> {
+		self.0.values().flatten()
+	}
+
+	pub fn contains_move_to(&self, position: &Position) -> bool {
+		for m in self.0.values().flatten() {
+			if &m.final_position == position {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	pub fn entity_has_move_to(
 		&self,
 		entity: &Entity,
 		position: &Position
@@ -78,99 +123,131 @@ pub enum SquareState {
 	Friendly
 }
 
-#[derive(Event)]
-pub struct CalculateAvailableMoves;
-
-#[derive(Event)]
-pub struct CalculateAvailableMovesDone;
-
 fn calculate_available_moves(
-	mut event_reader: EventReader<CalculateAvailableMoves>,
-	mut event_writer: EventWriter<CalculateAvailableMovesDone>,
-	mut available_moves: ResMut<AvailableMoves>,
-	castle_availability: Res<CastleAvailability>,
-	en_passant_tracker: Res<EnPassantTracker>,
-	mut piece_query: Query<(Entity, &Piece, &Position, &MoveTracker)>,
-	opposing_piece_query: Query<(Entity, &Position, &Piece)>
-) {
-	// Consume CalculateAvailableMoves
-	let Some(_) = event_reader.into_iter().last() else {
-		error!("not exactly one CalculateAvailableMoves event");
-		return;
-	};
+	castle_availability: &CastleAvailability,
+	en_passant_tracker: &EnPassantState,
+	mut query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>,
+	query_opposing_piece: Query<(Entity, &Position, &Piece)>
+) -> AvailableMoves {
+	let mut am = AvailableMoves::default();
 
-	for (entity, &piece, &initial_position, &move_tracker) in
-		piece_query.iter_mut()
+	for (entity, piece, initial_position, move_tracker) in
+		query_piece.iter_mut()
 	{
-		// Gather piece default movement patterns
-		use PieceType::*;
-		let movement_patterns = match piece.piece_type() {
-			King => PieceMovementBehavior::king(),
-			Queen => PieceMovementBehavior::queen(),
-			Rook => PieceMovementBehavior::rook(),
-			Bishop => PieceMovementBehavior::bishop(),
-			Knight => PieceMovementBehavior::knight(),
-			Pawn => {
-				// Grab piece color
-				let piece_color = *piece.piece_color();
-				PieceMovementBehavior::pawn(piece_color)
-			}
-		};
-
-		let (start_x, start_z) = initial_position.xz();
-		let start_vec = Vec3::new(start_x as f32, 0.0, start_z as f32);
-
-		let mut moves: Vec<MoveInfo> = Vec::new();
-
-		for (direction, max_magnitude, special_move) in movement_patterns.iter()
-		{
-			let mut magnitude: u8 = 0u8;
-
-			while magnitude < *max_magnitude {
-				magnitude += 1;
-
-				let vector = start_vec + (direction.clone() * magnitude as f32);
-
-				// If the proposed Position can't exist, break
-				let final_position = match Position::try_from_vec3(vector) {
-					Some(bp) => bp,
-					None => break
-				};
-
-				// Check if there is a piece at the end position. If there
-				// is, we'll record it's color
-				let move_info_opt = determine_move(
-					entity,
-					&initial_position,
-					&final_position,
-					&piece,
-					&move_tracker,
-					special_move,
-					&castle_availability,
-					&en_passant_tracker,
-					&opposing_piece_query
-				);
-
-				if let Some(move_info) = move_info_opt {
-					if let MoveType::Capture { captured: _ } =
-						move_info.move_type
-					{
-						magnitude = *max_magnitude;
-					}
-
-					// Add move to possible moves
-					moves.push(move_info);
-				} else {
-					break;
-				}
-			} // end while
-		} // end for
-
-		available_moves.0.insert(entity, moves);
-		trace!(?piece, ?initial_position, ?available_moves);
+		let moves = calculate_moves_for_piece(
+			entity,
+			piece,
+			initial_position,
+			move_tracker,
+			castle_availability,
+			en_passant_tracker,
+			&query_opposing_piece
+		);
+		am.0.insert(entity, moves);
 	}
 
-	event_writer.send(CalculateAvailableMovesDone)
+	am
+}
+
+fn determine_square_state(
+	piece: &Piece,
+	initial_position: &Position,
+	final_position: &Position,
+	query_other_piece: &Query<(Entity, &Position, &Piece)>
+) -> SquareState {
+	for (o_entity, o_position, o_piece) in query_other_piece.iter() {
+		if o_position != final_position || o_position == initial_position {
+			continue;
+		}
+
+		return match piece.piece_color() == o_piece.piece_color() {
+			true => SquareState::Friendly,
+			false => SquareState::Opposing(o_entity)
+		};
+	}
+
+	SquareState::Vacant
+}
+
+fn calculate_moves_for_piece(
+	entity: Entity,
+	piece: &Piece,
+	initial_position: &Position,
+	move_tracker: &MoveTracker,
+	castle_availability: &CastleAvailability,
+	en_passant_tracker: &EnPassantState,
+	query_opposing_piece: &Query<(Entity, &Position, &Piece)>
+) -> Vec<MoveInfo> {
+	let mut moves: Vec<MoveInfo> = Vec::new();
+
+	// Gather piece default movement patterns
+	use PieceType::*;
+	let movement_patterns = match piece.piece_type() {
+		King => PieceMovementBehavior::king(),
+		Queen => PieceMovementBehavior::queen(),
+		Rook => PieceMovementBehavior::rook(),
+		Bishop => PieceMovementBehavior::bishop(),
+		Knight => PieceMovementBehavior::knight(),
+		Pawn => {
+			// Grab piece color
+			let piece_color = *piece.piece_color();
+			PieceMovementBehavior::pawn(piece_color)
+		}
+	};
+
+	let (start_x, start_z) = initial_position.xz();
+	let start_vec = Vec3::new(start_x as f32, 0.0, start_z as f32);
+
+	for (direction, max_magnitude, special_move) in movement_patterns.iter() {
+		let mut magnitude: u8 = 0u8;
+
+		while magnitude < *max_magnitude {
+			magnitude += 1;
+
+			let vector = start_vec + (direction.clone() * magnitude as f32);
+
+			// If the proposed Position can't exist, break
+			let final_position = match Position::try_from_vec3(vector) {
+				Some(bp) => bp,
+				None => break
+			};
+
+			let square_state = determine_square_state(
+				piece,
+				initial_position,
+				&final_position,
+				&query_opposing_piece
+			);
+
+			// Check if there is a piece at the end position. If there
+			// is, we'll record it's color
+			let move_info_opt = determine_move(
+				entity,
+				&initial_position,
+				&final_position,
+				&piece,
+				&move_tracker,
+				special_move,
+				castle_availability,
+				en_passant_tracker,
+				&square_state
+			);
+
+			if let Some(move_info) = move_info_opt {
+				if let MoveType::Capture { captured: _ } = move_info.move_type {
+					magnitude = *max_magnitude;
+				}
+
+				// Add move to possible moves
+				moves.push(move_info);
+			} else {
+				break;
+			}
+		} // end while
+	} // end for
+
+	trace!(?piece, ?initial_position, ?moves);
+	moves
 }
 
 fn determine_move(
@@ -180,9 +257,9 @@ fn determine_move(
 	piece: &Piece,
 	move_tracker: &MoveTracker,
 	special_move: &MovementType,
-	castle_availability: &Res<CastleAvailability>,
-	en_passant_tracker: &Res<EnPassantTracker>,
-	other_piece_query: &Query<(Entity, &Position, &Piece)>
+	castle_availability: &CastleAvailability,
+	en_passant_tracker: &EnPassantState,
+	square_state: &SquareState
 ) -> Option<MoveInfo> {
 	if special_move == &MovementType::CastleKingside
 		|| special_move == &MovementType::CastleQueenside
@@ -195,28 +272,7 @@ fn determine_move(
 			special_move,
 			castle_availability
 		);
-	}
-
-	// Find query result
-	let query_result = other_piece_query
-		.iter()
-		.filter(|&(_, position, _)| {
-			position == final_position && position != initial_position
-		})
-		.last();
-
-	// Find out the space
-	let square_state = match query_result {
-		Some((entity, _, other_piece)) => {
-			match piece.piece_color() == other_piece.piece_color() {
-				true => SquareState::Friendly,
-				false => SquareState::Opposing(entity)
-			}
-		},
-		None => SquareState::Vacant
-	};
-
-	if piece.piece_type() == &PieceType::Pawn {
+	} else if piece.piece_type() == &PieceType::Pawn {
 		return determine_pawn_move(
 			entity,
 			initial_position,
@@ -227,22 +283,26 @@ fn determine_move(
 			en_passant_tracker,
 			&square_state
 		);
+	} else {
+		use SquareState::*;
+		let move_type_opt = match *square_state {
+			Vacant => Some(MoveType::Move),
+			Opposing(captured) => Some(MoveType::Capture { captured }),
+			Friendly => None
+		};
+
+		return Some(MoveInfo {
+			entity,
+			piece: *piece,
+			initial_position: *initial_position,
+			final_position: *final_position,
+			move_type: move_type_opt?,
+			promoted_to: None,
+			is_check: false,
+			is_checkmate: false,
+			draw_offered: false
+		});
 	}
-
-	use SquareState::*;
-	let move_type_opt = match square_state {
-		Vacant => Some(MoveType::Move),
-		Opposing(captured) => Some(MoveType::Capture { captured }),
-		Friendly => None
-	};
-
-	return Some(MoveInfo {
-		entity,
-		piece: *piece,
-		initial_position: *initial_position,
-		final_position: *final_position,
-		move_type: move_type_opt?
-	});
 }
 
 fn determine_pawn_move(
@@ -252,14 +312,14 @@ fn determine_pawn_move(
 	piece: &Piece,
 	move_tracker: &MoveTracker,
 	special_move: &MovementType,
-	en_passant_tracker: &Res<EnPassantTracker>,
+	en_passant_tracker: &EnPassantState,
 	square_state: &SquareState
 ) -> Option<MoveInfo> {
 	if piece.piece_type() != &PieceType::Pawn {
 		return None;
 	}
 
-	use EnPassantTracker::*;
+	use EnPassantState::*;
 	use MovementType::*;
 	use SquareState::*;
 	let move_type = match (square_state, special_move) {
@@ -268,7 +328,7 @@ fn determine_pawn_move(
 			true => None,
 			false => Some(MoveType::FirstMove)
 		},
-		(Vacant, EnPassantCapture) => match en_passant_tracker.as_ref() {
+		(Vacant, EnPassantCapture) => match en_passant_tracker {
 			&Unavailable => None,
 			&Available { position, captured } => {
 				match &position == final_position {
@@ -288,7 +348,11 @@ fn determine_pawn_move(
 		piece: *piece,
 		initial_position: *initial_position,
 		final_position: *final_position,
-		move_type
+		move_type,
+		promoted_to: None,
+		is_check: false,
+		is_checkmate: false,
+		draw_offered: false
 	});
 }
 
@@ -298,7 +362,7 @@ fn determine_castle_move(
 	final_position: &Position,
 	piece: &Piece,
 	special_move: &MovementType,
-	castle_availability: &Res<CastleAvailability>
+	castle_availability: &CastleAvailability
 ) -> Option<MoveInfo> {
 	if piece.piece_type() != &PieceType::King {
 		return None;
@@ -331,6 +395,10 @@ fn determine_castle_move(
 		piece: *piece,
 		initial_position: *initial_position,
 		final_position: *final_position,
-		move_type
+		move_type,
+		promoted_to: None,
+		is_check: false,
+		is_checkmate: false,
+		draw_offered: false
 	});
 }

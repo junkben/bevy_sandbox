@@ -11,7 +11,10 @@ pub mod resources;
 mod settings;
 mod turn;
 
-use bevy::prelude::*;
+use bevy::{
+	diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+	prelude::*
+};
 pub use move_info::{MoveInfo, MoveType};
 pub use settings::GameSettings;
 
@@ -35,6 +38,10 @@ fn main() {
 			board::BoardPlugin,
 			physics::MotionPlugin
 		))
+		//.add_plugins((
+		// 	LogDiagnosticsPlugin::default(),
+		// 	FrameTimeDiagnosticsPlugin
+		//))
 		.run();
 }
 

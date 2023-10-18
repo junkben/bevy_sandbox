@@ -10,12 +10,12 @@ use crate::{
 pub struct EnPassantPlugin;
 impl Plugin for EnPassantPlugin {
 	fn build(&self, app: &mut App) {
-		app.insert_resource(EnPassantTracker::default())
+		app.insert_resource(EnPassantState::default())
 			.add_event::<CheckEnPassant>()
 			.add_event::<CheckEnPassantDone>()
 			.add_systems(
 				Update,
-				check_en_passant.run_if(on_event::<CheckEnPassant>())
+				handle_event.run_if(on_event::<CheckEnPassant>())
 			);
 	}
 }
@@ -28,7 +28,7 @@ pub struct CheckEnPassantDone;
 
 /// Tracks whether or not there's a target for an en passant capture
 #[derive(Resource, Default, Debug)]
-pub enum EnPassantTracker {
+pub enum EnPassantState {
 	#[default]
 	Unavailable,
 	Available {
@@ -37,11 +37,11 @@ pub enum EnPassantTracker {
 	}
 }
 
-fn check_en_passant(
+fn handle_event(
 	mut commands: Commands,
 	mut event_reader: EventReader<CheckEnPassant>,
 	mut event_writer: EventWriter<CheckEnPassantDone>,
-	move_history: Res<MoveHistory>
+	res_move_history: Res<MoveHistory>
 ) {
 	// Consume CheckEnPassant
 	let Some(_) = event_reader.into_iter().last() else {
@@ -49,26 +49,29 @@ fn check_en_passant(
 		return;
 	};
 
-	let ept = determine_en_passant(move_history);
+	let en_passant_state =
+		determine_en_passant_state(res_move_history.as_ref());
 
-	debug!(?ept);
-	commands.insert_resource(ept);
+	debug!(?en_passant_state);
+	commands.insert_resource(en_passant_state);
 	event_writer.send(CheckEnPassantDone);
 }
 
-fn determine_en_passant(move_history: Res<MoveHistory>) -> EnPassantTracker {
+fn determine_en_passant_state(move_history: &MoveHistory) -> EnPassantState {
+	// If there hasn't been a move yet, then there's no en passant
 	let Some(latest_move) = move_history.latest_move() else {
-		return EnPassantTracker::Unavailable;
+		return EnPassantState::Unavailable;
 	};
 
+	// If the latest move wasn't a first move, then there's no en passant
 	if latest_move.move_type != MoveType::FirstMove {
-		return EnPassantTracker::Unavailable;
+		return EnPassantState::Unavailable;
 	}
 
 	// Determine the position that needs to be moved to to capture the pawn
 	use File::*;
 	use PieceColor::*;
-	EnPassantTracker::Available {
+	EnPassantState::Available {
 		position: match (
 			latest_move.piece.piece_color(),
 			latest_move.final_position.file()
