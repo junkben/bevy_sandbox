@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::{
+use crate::game::{
 	physics::TranslationalMotionDone,
-	piece::{MovePieceToBoardPosition, Piece},
+	piece::{MovePieceToBoardPosition, Piece, PieceCaptured},
 	resources::{CastleAvailability, CastleType, MoveHistory},
 	MoveInfo, MoveType
 };
@@ -17,7 +17,7 @@ impl Plugin for PieceMovementPlugin {
 			(
 				wait_for_piece_motion_to_complete
 					.run_if(in_state(TurnState::MovePiece)),
-				confirm_move.run_if(on_event::<MoveSelected>())
+				handle_event_move_selected.run_if(on_event::<MoveSelected>())
 			)
 		);
 	}
@@ -25,31 +25,24 @@ impl Plugin for PieceMovementPlugin {
 
 #[derive(Event)]
 pub struct MoveSelected {
-	pub entity:    Entity,
 	pub move_info: MoveInfo
 }
 
-fn confirm_move(
-	mut commands: Commands,
-	mut event_reader: EventReader<MoveSelected>,
-	mut event_writer: EventWriter<MovePieceToBoardPosition>,
+fn handle_event_move_selected(
+	mut er_move_selected: EventReader<MoveSelected>,
+	mut ew_piece_move: EventWriter<MovePieceToBoardPosition>,
+	mut ew_piece_captured: EventWriter<PieceCaptured>,
 	mut move_history: ResMut<MoveHistory>,
 	castle_availability: Res<CastleAvailability>
 ) {
-	let Some(event) = event_reader.into_iter().last() else {
+	let Some(event) = er_move_selected.into_iter().last() else {
 		error!("not exactly one MoveSelected event");
 		return;
 	};
 
-	// TODO: Remove captured piece in more elegant way via animation?
-	// If it's a capture, remove the captured entity
-	if let MoveType::Capture { captured, .. } = event.move_info.move_type {
-		commands.entity(captured).despawn();
-	}
-
 	// Send the event to physically move the piece to the new board position
-	event_writer.send(MovePieceToBoardPosition {
-		entity:      event.entity,
+	ew_piece_move.send(MovePieceToBoardPosition {
+		entity:      event.move_info.entity,
 		destination: event.move_info.final_position
 	});
 
@@ -63,7 +56,7 @@ fn confirm_move(
 		Move | FirstMove => return,
 		// If it's a capture, despawn the captured entity
 		Capture { captured, .. } | CaptureEnPassant { captured, .. } => {
-			commands.entity(captured).despawn();
+			ew_piece_captured.send(PieceCaptured { entity: captured });
 		},
 		// If it's a castle, we need to move the rook too
 		Castle(castle_type) => {
@@ -80,7 +73,7 @@ fn confirm_move(
 
 			// Send the event to physically move the piece to the new board
 			// position
-			event_writer.send(MovePieceToBoardPosition {
+			ew_piece_move.send(MovePieceToBoardPosition {
 				entity:      entities.rook,
 				destination: entities.rook_destination
 			});

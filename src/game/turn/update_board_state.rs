@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::resources::{ActiveColor, HalfmoveTracker};
+use crate::game::resources::{ActiveColor, HalfmoveTracker};
 
 pub struct UpdateBoardStatePlugin;
 

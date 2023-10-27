@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::{
+use crate::game::{
 	piece::{Piece, SpawnPiece, INITIAL_PIECE_POSITIONS},
 	position::Position
 };

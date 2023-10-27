@@ -23,8 +23,10 @@ impl Plugin for TurnManagerPlugin {
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum TurnState {
-	/// Just begun the game (gives us a chance to wait for pieces to spawn)
 	#[default]
+	// Not doing turns right now
+	None,
+	/// Just begun the game (gives us a chance to wait for pieces to spawn)
 	GameStart,
 	/// New turn starting
 	Start,

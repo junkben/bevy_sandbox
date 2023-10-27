@@ -11,13 +11,13 @@ pub use movement::{
 };
 pub use piece_type::PieceType;
 pub use selection::{PieceSelectionBundle, UserSelectedPiece};
-pub use spawn::{SpawnPiece, INITIAL_PIECE_POSITIONS};
+pub use spawn::{PieceCaptured, SpawnPiece, INITIAL_PIECE_POSITIONS};
 
 use self::{
 	movement::PieceMovementPlugin, selection::PieceSelectPlugin,
 	spawn::SpawnPiecePlugin
 };
-use crate::{position::Position, resources::Theme};
+use crate::game::{position::Position, resources::Theme};
 
 macro_rules! chess_pieces {
 	($($name:ident, $color:ident, $piece_type:ident);*) => {

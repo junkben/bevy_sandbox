@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::color::SquareColor;
-use crate::{position::Position, resources::Theme};
+use crate::game::{position::Position, resources::Theme};
 
 pub const WHITE_SQUARE: Square = Square {
 	color: SquareColor::White

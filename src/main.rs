@@ -1,66 +1,71 @@
-mod board;
-mod camera;
-mod end_game;
-mod light;
-mod move_info;
-mod move_tracker;
-mod physics;
-mod piece;
-mod position;
-pub mod resources;
-mod settings;
-mod turn;
+use bevy::prelude::*;
 
-use bevy::{
-	diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-	prelude::*
-};
-pub use move_info::{MoveInfo, MoveType};
-pub use settings::GameSettings;
+mod game;
+mod log;
+mod menu;
+mod splash;
+mod window;
+
+const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
 fn main() {
 	App::new()
-		// Set antialiasing to use 4 samples
-		.insert_resource(Msaa::Sample4)
-		// Add in Game Settings
-		.insert_resource(GameSettings::default())
-		// Add resources first
-		.add_plugins(resources::ResourcesPlugin)
-		// Set WindowDescriptor Resource to change title and size
-		.add_plugins(DefaultPlugins.set(window_plugin()).set(log_plugin()))
-		.add_plugins((
-			bevy_panorbit_camera::PanOrbitCameraPlugin,
-			bevy_mod_picking::DefaultPickingPlugins,
-			turn::TurnManagerPlugin,
-			camera::ChessCameraPlugin,
-			light::ChessLightPlugin,
-			piece::PiecesPlugin,
-			board::BoardPlugin,
-			physics::MotionPlugin
-		))
-		//.add_plugins((
-		// 	LogDiagnosticsPlugin::default(),
-		// 	FrameTimeDiagnosticsPlugin
-		//))
+		// Declare the game state, whose starting value is determined by the
+		// `Default` trait
+		.add_state::<GameState>()
+		.add_plugins(
+			DefaultPlugins
+				.set(window::window_plugin())
+				.set(log::log_plugin())
+		)
+		// Adds the plugins for each state
+		.add_plugins((splash::SplashPlugin, menu::MenuPlugin, game::GamePlugin))
+		.add_systems(
+			Update,
+			(
+				handle_user_open_menu.run_if(in_state(GameState::Game)),
+				handle_user_close_menu.run_if(in_state(GameState::Menu))
+			)
+		)
 		.run();
 }
 
-fn log_plugin() -> bevy::log::LogPlugin {
-	bevy::log::LogPlugin {
-		filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_sandbox=debug,\
-		         bevy_mod_picking=warn,naga=warn"
-			.into(),
-		level:  bevy::log::Level::DEBUG
+// Enum that will be used as a global state for the game
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum GameState {
+	#[default]
+	Splash,
+	Menu,
+	Game
+}
+
+// Generic system that takes a component as a parameter, and will despawn all
+// entities with that component
+fn despawn_screen<T: Component>(
+	to_despawn: Query<Entity, With<T>>,
+	mut commands: Commands
+) {
+	for entity in &to_despawn {
+		commands.entity(entity).despawn_recursive();
 	}
 }
 
-fn window_plugin() -> WindowPlugin {
-	WindowPlugin {
-		primary_window: Some(Window {
-			title: "TEST".to_string(),
-			resolution: (640.0, 480.0).into(),
-			..default()
-		}),
-		..default()
+fn handle_user_open_menu(
+	mut game_state: ResMut<NextState<GameState>>,
+	keys: Res<Input<KeyCode>>
+) {
+	if keys.just_pressed(KeyCode::Escape) {
+		debug!("moving to menu from game");
+		game_state.set(GameState::Menu)
+	}
+}
+
+fn handle_user_close_menu(
+	mut game_state: ResMut<NextState<GameState>>,
+	keys: Res<Input<KeyCode>>
+) {
+	if keys.just_pressed(KeyCode::Escape) {
+		debug!("moving to game from menu");
+		game_state.set(GameState::Game)
 	}
 }

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use super::{selection::UserSelectedPiece, Piece, PieceSelectionBundle};
-use crate::{
+use crate::game::{
 	move_tracker::MoveTracker, physics::TranslationalMotion,
 	position::Position, resources::Theme
 };
@@ -11,7 +11,15 @@ pub struct SpawnPiecePlugin;
 impl Plugin for SpawnPiecePlugin {
 	fn build(&self, app: &mut App) {
 		app.add_event::<SpawnPiece>()
-			.add_systems(Update, read_spawn_piece_events);
+			.add_event::<PieceCaptured>()
+			.add_systems(
+				Update,
+				(
+					handle_event_spawn_piece.run_if(on_event::<SpawnPiece>()),
+					handle_event_piece_captured
+						.run_if(on_event::<PieceCaptured>())
+				)
+			);
 	}
 }
 
@@ -54,7 +62,7 @@ pub struct SpawnPiece {
 	pub position: Position
 }
 
-fn read_spawn_piece_events(
+fn handle_event_spawn_piece(
 	mut commands: Commands,
 	mut spawn_piece_reader: EventReader<SpawnPiece>,
 	asset_server: Res<AssetServer>,
@@ -70,6 +78,20 @@ fn read_spawn_piece_events(
 
 		let piece_bundle = PieceBundle::new(pbr_bundle, position, piece);
 		commands.spawn(piece_bundle);
+	}
+}
+
+#[derive(Event)]
+pub struct PieceCaptured {
+	pub entity: Entity
+}
+
+fn handle_event_piece_captured(
+	mut commands: Commands,
+	mut er: EventReader<PieceCaptured>
+) {
+	for event in er.into_iter() {
+		commands.entity(event.entity).despawn();
 	}
 }
 

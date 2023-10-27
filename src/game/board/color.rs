@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::resources::Theme;
+use crate::game::resources::Theme;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SquareColor {

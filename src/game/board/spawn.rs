@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 use super::{square::*, SquareSelectionBundle, UserSelectedSquare};
-use crate::{position::Position, resources::Theme};
+use crate::game::{position::Position, resources::Theme};
 
 #[derive(Bundle)]
 struct SquareBundle {

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::MoveHistory;
-use crate::{
+use crate::game::{
 	piece::PieceColor,
 	position::{File, Position},
 	MoveType

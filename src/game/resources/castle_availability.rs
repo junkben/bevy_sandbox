@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{move_tracker::MoveTracker, piece::Piece, position::Position};
+use crate::game::{move_tracker::MoveTracker, piece::Piece, position::Position};
 
 pub struct CastleAvailabilityPlugin;
 impl Plugin for CastleAvailabilityPlugin {

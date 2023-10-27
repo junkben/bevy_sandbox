@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 
 use super::{CastleAvailability, EnPassantState};
-use crate::{
+use crate::game::{
 	move_info::MoveInfo,
 	move_tracker::MoveTracker,
 	piece::{
@@ -70,6 +70,8 @@ impl std::fmt::Display for AvailableMoves {
 }
 
 impl AvailableMoves {
+	pub fn get(&self, k: &Entity) -> Option<&Vec<MoveInfo>> { self.0.get(k) }
+
 	pub fn all_moves(&self) -> impl Iterator<Item = &MoveInfo> {
 		self.0.values().flatten()
 	}
@@ -86,10 +88,10 @@ impl AvailableMoves {
 
 	pub fn entity_has_move_to(
 		&self,
-		entity: &Entity,
+		entity: Entity,
 		position: &Position
 	) -> bool {
-		if let Some(moves) = self.0.get(entity) {
+		if let Some(moves) = self.0.get(&entity) {
 			for m in moves {
 				if &m.final_position == position {
 					return true;

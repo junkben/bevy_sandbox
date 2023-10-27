@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::move_info::MoveInfo;
+use crate::game::move_info::MoveInfo;
 
 #[derive(Resource, Default, Debug)]
 pub struct MoveHistory(Vec<MoveInfo>);

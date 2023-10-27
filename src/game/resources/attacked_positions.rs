@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use bevy::prelude::*;
 
 use super::{ActiveColor, AvailableMoves};
-use crate::position::Position;
+use crate::game::position::Position;
 
 pub struct AttackedPositionsPlugin;
 impl Plugin for AttackedPositionsPlugin {

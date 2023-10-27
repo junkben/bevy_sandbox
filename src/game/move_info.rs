@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
+use crate::game::{
 	piece::{Piece, PieceType},
 	position::Position,
 	resources::CastleType

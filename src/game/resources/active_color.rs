@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::piece::PieceColor;
+use crate::game::piece::PieceColor;
 
 /// Tracks whose turn it is. White always goes first.
 #[derive(Resource)]

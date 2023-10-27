@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_panorbit_camera::PanOrbitCamera;
 
 use super::TurnState;
-use crate::{
+use crate::game::{
 	camera::SetCameraTargetAlpha,
 	piece::PieceColor,
 	resources::{

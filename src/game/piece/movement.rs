@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
+use crate::game::{
 	move_tracker::MoveTracker, physics::TranslationalMotionStart,
 	position::Position
 };

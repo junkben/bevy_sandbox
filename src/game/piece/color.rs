@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use PieceColor::*;
 
-use crate::resources::Theme;
+use crate::game::resources::Theme;
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PieceColor {
