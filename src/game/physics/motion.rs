@@ -60,7 +60,7 @@ pub(super) fn read_translational_motion_start_events(
 
 pub(super) fn update_motion(
 	time: Res<Time>,
-	mut event_writer: EventWriter<TranslationalMotionDone>,
+	mut ew_motion_done: EventWriter<TranslationalMotionDone>,
 	mut query_motion: Query<(Entity, &mut Transform, &mut TranslationalMotion)>
 ) {
 	// Query all entities with a transform, as well as optionally velocity and
@@ -93,7 +93,7 @@ pub(super) fn update_motion(
 		if distance_to_x_t > distance_to_target {
 			m.x = m.x_target;
 			m.v = Vec3::ZERO;
-			event_writer.send(TranslationalMotionDone { entity });
+			ew_motion_done.send(TranslationalMotionDone { entity });
 		} else {
 			m.x = x_t;
 			m.v = v_t;

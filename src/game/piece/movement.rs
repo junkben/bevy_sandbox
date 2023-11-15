@@ -26,7 +26,7 @@ pub struct MovePieceToBoardPosition {
 /// event
 fn move_piece_to_board_position(
 	mut events: EventReader<MovePieceToBoardPosition>,
-	mut event_writer: EventWriter<TranslationalMotionStart>,
+	mut ew_start_motion: EventWriter<TranslationalMotionStart>,
 	mut query_entities: Query<
 		(Entity, &mut Position, &mut MoveTracker),
 		With<Piece>
@@ -47,7 +47,7 @@ fn move_piece_to_board_position(
 		// Increment the move tracker
 		mt.inc();
 
-		event_writer.send(TranslationalMotionStart {
+		ew_start_motion.send(TranslationalMotionStart {
 			entity,
 			destination: event.destination.translation()
 		});

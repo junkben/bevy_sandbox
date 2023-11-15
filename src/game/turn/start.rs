@@ -62,11 +62,11 @@ impl TurnStartChecklist {
 
 fn update_checklist(
 	mut event_reader_castle: EventReader<CheckCastleAvailabilityDone>,
-	mut event_writer_moves: EventWriter<CalculateAvailableMoves>,
+	mut ew_moves: EventWriter<CalculateAvailableMoves>,
 	mut event_reader_moves: EventReader<CalculateAvailableMovesDone>,
-	mut event_writer_attacked: EventWriter<UpdateAttackedPositions>,
+	mut ew_attacked: EventWriter<UpdateAttackedPositions>,
 	mut event_reader_attacked: EventReader<UpdateAttackedPositionsDone>,
-	mut event_writer_en_passant: EventWriter<CheckEnPassant>,
+	mut ew_en_passant: EventWriter<CheckEnPassant>,
 	mut event_reader_en_passant: EventReader<CheckEnPassantDone>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
 	mut turn_state: ResMut<NextState<TurnState>>
@@ -80,21 +80,21 @@ fn update_checklist(
 		start_turn_checklist.calculated_moves = true;
 		debug!("consumed CalculateAvailableMovesDone");
 
-		event_writer_attacked.send(UpdateAttackedPositions)
+		ew_attacked.send(UpdateAttackedPositions)
 	};
 
 	if let Some(_) = event_reader_en_passant.iter().last() {
 		start_turn_checklist.check_en_passant = true;
 		debug!("consumed CheckEnPassantDone");
 
-		event_writer_moves.send(CalculateAvailableMoves)
+		ew_moves.send(CalculateAvailableMoves)
 	};
 
 	if let Some(_) = event_reader_castle.iter().last() {
 		start_turn_checklist.check_castle_availability = true;
 		debug!("consumed CheckCastleAvailabilityDone");
 
-		event_writer_en_passant.send(CheckEnPassant)
+		ew_en_passant.send(CheckEnPassant)
 	};
 
 	if start_turn_checklist.done() {
@@ -107,16 +107,16 @@ fn update_checklist(
 }
 
 fn check_castle_availability(
-	mut event_writer: EventWriter<CheckCastleAvailability>
+	mut ew_check: EventWriter<CheckCastleAvailability>
 ) {
-	event_writer.send(CheckCastleAvailability)
+	ew_check.send(CheckCastleAvailability)
 }
 
 const WHITE_ALPHA: f32 = 0.0;
 const BLACK_ALPHA: f32 = std::f32::consts::TAU / 2.0;
 
 fn move_camera(
-	mut event_writer: EventWriter<SetCameraTargetAlpha>,
+	mut ew_set: EventWriter<SetCameraTargetAlpha>,
 	active_color: Res<ActiveColor>,
 	game_settings: Res<GameSettings>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
@@ -134,7 +134,7 @@ fn move_camera(
 			Black => BLACK_ALPHA
 		};
 
-		event_writer.send(SetCameraTargetAlpha {
+		ew_set.send(SetCameraTargetAlpha {
 			entity,
 			target_alpha
 		});

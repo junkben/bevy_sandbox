@@ -172,7 +172,7 @@ fn main_menu_action(
 		(&Interaction, &MenuButtonAction),
 		(Changed<Interaction>, With<Button>)
 	>,
-	mut app_exit_events: EventWriter<AppExit>,
+	mut ew_app_exit: EventWriter<AppExit>,
 	mut menu_state: ResMut<NextState<MenuState>>,
 	mut game_state: ResMut<NextState<GameState>>
 ) {
@@ -188,7 +188,7 @@ fn main_menu_action(
 				Settings => {
 					menu_state.set(MenuState::Settings);
 				},
-				Quit => app_exit_events.send(AppExit)
+				Quit => ew_app_exit.send(AppExit)
 			}
 		}
 	}

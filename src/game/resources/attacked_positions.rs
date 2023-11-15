@@ -31,7 +31,7 @@ pub struct AttackedPositions(pub HashSet<Position>);
 fn handle_event(
 	mut commands: Commands,
 	mut er: EventReader<UpdateAttackedPositions>,
-	mut ew: EventWriter<UpdateAttackedPositionsDone>,
+	mut ew_update_done: EventWriter<UpdateAttackedPositionsDone>,
 	res_available_moves: Res<AvailableMoves>,
 	res_active_color: Res<ActiveColor>
 ) {
@@ -48,7 +48,7 @@ fn handle_event(
 
 	debug!(?attacked_positions);
 	commands.insert_resource(attacked_positions);
-	ew.send(UpdateAttackedPositionsDone);
+	ew_update_done.send(UpdateAttackedPositionsDone);
 }
 
 fn determine_attacked_positions(

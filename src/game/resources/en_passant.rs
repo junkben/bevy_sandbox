@@ -40,7 +40,7 @@ pub enum EnPassantState {
 fn handle_event(
 	mut commands: Commands,
 	mut event_reader: EventReader<CheckEnPassant>,
-	mut event_writer: EventWriter<CheckEnPassantDone>,
+	mut ew_check_done: EventWriter<CheckEnPassantDone>,
 	res_move_history: Res<MoveHistory>
 ) {
 	// Consume CheckEnPassant
@@ -54,7 +54,7 @@ fn handle_event(
 
 	debug!(?en_passant_state);
 	commands.insert_resource(en_passant_state);
-	event_writer.send(CheckEnPassantDone);
+	ew_check_done.send(CheckEnPassantDone);
 }
 
 fn determine_en_passant_state(move_history: &MoveHistory) -> EnPassantState {

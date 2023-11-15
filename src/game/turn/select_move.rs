@@ -46,7 +46,7 @@ impl Plugin for SelectMovePlugin {
 fn handle_event_user_select_piece(
 	mut commands: Commands,
 	mut event_reader: EventReader<UserSelectedPiece>,
-	mut event_writer: EventWriter<UpdateSquareSelection>,
+	mut ew_selection_update: EventWriter<UpdateSquareSelection>,
 	res_available_moves: Res<AvailableMoves>,
 	query_piece: Query<Entity, With<Piece>>
 ) {
@@ -68,13 +68,13 @@ fn handle_event_user_select_piece(
 
 	let positions = moves.iter().map(|m| m.final_position).collect::<Vec<_>>();
 
-	event_writer.send(UpdateSquareSelection { positions })
+	ew_selection_update.send(UpdateSquareSelection { positions })
 }
 
 fn handle_event_user_select_square(
 	mut commands: Commands,
 	mut er: EventReader<UserSelectedSquare>,
-	mut ew: EventWriter<MoveSelected>,
+	mut ew_move_selected: EventWriter<MoveSelected>,
 	mut res_turn_state: ResMut<NextState<TurnState>>,
 	res_selected_piece: Res<SelectedPiece>,
 	res_available_moves: Res<AvailableMoves>,
@@ -94,7 +94,7 @@ fn handle_event_user_select_square(
 	);
 
 	commands.insert_resource(SelectedPiece(None));
-	ew.send(MoveSelected { move_info });
+	ew_move_selected.send(MoveSelected { move_info });
 
 	debug!("moving to {:?}", TurnState::MovePiece);
 	res_turn_state.set(TurnState::MovePiece);

@@ -26,7 +26,7 @@ pub struct CheckCastleAvailabilityDone;
 fn handle_event(
 	mut commands: Commands,
 	mut er: EventReader<CheckCastleAvailability>,
-	mut ew: EventWriter<CheckCastleAvailabilityDone>,
+	mut ew_check_done: EventWriter<CheckCastleAvailabilityDone>,
 	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>
 ) {
 	// Consume CheckCastleAvailability
@@ -39,7 +39,7 @@ fn handle_event(
 
 	debug!(?castle_availability);
 	commands.insert_resource(castle_availability);
-	ew.send(CheckCastleAvailabilityDone)
+	ew_check_done.send(CheckCastleAvailabilityDone)
 }
 
 pub fn determine_castle_availability(

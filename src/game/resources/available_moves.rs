@@ -35,15 +35,15 @@ pub struct CalculateAvailableMovesDone;
 
 fn handle_event(
 	mut commands: Commands,
-	mut er: EventReader<CalculateAvailableMoves>,
-	mut ew: EventWriter<CalculateAvailableMovesDone>,
+	mut er_calculate_moves: EventReader<CalculateAvailableMoves>,
+	mut ew_calculate_done: EventWriter<CalculateAvailableMovesDone>,
 	res_castle_availability: Res<CastleAvailability>,
 	res_en_passant_tracker: Res<EnPassantState>,
 	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>,
 	query_opposing_piece: Query<(Entity, &Position, &Piece)>
 ) {
 	// Consume CalculateAvailableMoves
-	let Some(_) = er.into_iter().last() else {
+	let Some(_) = er_calculate_moves.into_iter().last() else {
 		error!("not exactly one CalculateAvailableMoves event");
 		return;
 	};
@@ -56,7 +56,7 @@ fn handle_event(
 	);
 
 	commands.insert_resource(available_moves);
-	ew.send(CalculateAvailableMovesDone)
+	ew_calculate_done.send(CalculateAvailableMovesDone)
 }
 
 /// A component that tracks the available positions an entity can move to
