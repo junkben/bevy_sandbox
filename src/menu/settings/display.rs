@@ -1,38 +1,33 @@
 use bevy::prelude::*;
 
-use super::{
-	despawn_screen, setting_button, SelectedOption, NORMAL_BUTTON, TEXT_COLOR
-};
+use super::*;
+use crate::menu::MenuState;
 
 pub struct DisplaySettingsMenuPlugin;
 
 impl Plugin for DisplaySettingsMenuPlugin {
 	fn build(&self, app: &mut App) {
 		app.insert_resource(DisplayQuality::default())
-			.add_state::<DisplaySettingsMenuState>()
 			// Systems to handle the display settings screen
 			.add_systems(
-				OnEnter(DisplaySettingsMenuState::Main),
+				OnEnter(MenuState::SettingsDisplay),
 				display_settings_menu_setup
 			)
 			.add_systems(
-				OnExit(DisplaySettingsMenuState::Main),
+				OnExit(MenuState::SettingsDisplay),
 				despawn_screen::<OnDisplaySettingsMenuScreen>
 			)
 			.add_systems(
 				Update,
 				(setting_button::<DisplayQuality>
-					.run_if(in_state(DisplaySettingsMenuState::Main)),)
+					.run_if(in_state(MenuState::SettingsDisplay)),)
+			)
+			.add_systems(
+				Update,
+				display_menu_action
+					.run_if(in_state(MenuState::SettingsDisplay))
 			);
 	}
-}
-
-// State used for the current menu screen
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub enum DisplaySettingsMenuState {
-	Main,
-	#[default]
-	Disabled
 }
 
 // All actions that can be triggered from a button click
@@ -95,7 +90,7 @@ fn display_settings_menu_setup(
 						align_items: AlignItems::Center,
 						..default()
 					},
-					background_color: Color::CRIMSON.into(),
+					background_color: MENU_PANEL.into(),
 					..default()
 				})
 				.with_children(|parent| {
@@ -108,7 +103,7 @@ fn display_settings_menu_setup(
 								align_items: AlignItems::Center,
 								..default()
 							},
-							background_color: Color::CRIMSON.into(),
+							background_color: MENU_PANEL.into(),
 							..default()
 						})
 						.with_children(|parent| {
@@ -164,4 +159,23 @@ fn display_settings_menu_setup(
 						});
 				});
 		});
+}
+
+fn display_menu_action(
+	interaction_query: Query<
+		(&Interaction, &DisplaySettingsMenuButtonAction),
+		(Changed<Interaction>, With<Button>)
+	>,
+	mut menu_state: ResMut<NextState<MenuState>>
+) {
+	for (interaction, action) in &interaction_query {
+		if *interaction == Interaction::Pressed {
+			use DisplaySettingsMenuButtonAction::*;
+			match action {
+				Back => {
+					menu_state.set(MenuState::Settings);
+				}
+			}
+		}
+	}
 }

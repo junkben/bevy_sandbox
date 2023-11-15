@@ -1,0 +1,8 @@
+- Theme
+    - Make theming for menu separate from the game board theming
+- Menus
+    - Add menu for changing gameplay settings
+- Replay Mode
+- Rename queries
+- Rename event_writers
+- Rename event_readers

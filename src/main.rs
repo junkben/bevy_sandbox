@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use menu::MenuState;
 
 mod game;
 mod log;
@@ -42,30 +43,34 @@ enum GameState {
 // Generic system that takes a component as a parameter, and will despawn all
 // entities with that component
 fn despawn_screen<T: Component>(
-	to_despawn: Query<Entity, With<T>>,
+	query_entities_to_despawn: Query<Entity, With<T>>,
 	mut commands: Commands
 ) {
-	for entity in &to_despawn {
+	for entity in &query_entities_to_despawn {
 		commands.entity(entity).despawn_recursive();
 	}
 }
 
 fn handle_user_open_menu(
 	mut game_state: ResMut<NextState<GameState>>,
+	mut menu_state: ResMut<NextState<MenuState>>,
 	keys: Res<Input<KeyCode>>
 ) {
 	if keys.just_pressed(KeyCode::Escape) {
 		debug!("moving to menu from game");
-		game_state.set(GameState::Menu)
+		game_state.set(GameState::Menu);
+		menu_state.set(MenuState::Main);
 	}
 }
 
 fn handle_user_close_menu(
 	mut game_state: ResMut<NextState<GameState>>,
+	mut menu_state: ResMut<NextState<MenuState>>,
 	keys: Res<Input<KeyCode>>
 ) {
 	if keys.just_pressed(KeyCode::Escape) {
 		debug!("moving to game from menu");
-		game_state.set(GameState::Game)
+		game_state.set(GameState::Game);
+		menu_state.set(MenuState::Disabled);
 	}
 }

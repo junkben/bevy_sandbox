@@ -4,40 +4,26 @@ mod sound;
 use bevy::prelude::*;
 
 use self::{
-	display::{DisplaySettingsMenuPlugin, DisplaySettingsMenuState},
-	sound::{SoundSettingsMenuPlugin, SoundSettingsMenuState}
+	display::DisplaySettingsMenuPlugin, sound::SoundSettingsMenuPlugin
 };
-use super::{
-	despawn_screen, MenuState, SelectedOption, NORMAL_BUTTON, TEXT_COLOR
-};
+use super::*;
 
 pub struct SettingsMenuPlugin;
 
 impl Plugin for SettingsMenuPlugin {
 	fn build(&self, app: &mut App) {
-		app.add_state::<SettingsMenuState>()
-			.add_plugins((DisplaySettingsMenuPlugin, SoundSettingsMenuPlugin))
+		app.add_plugins((DisplaySettingsMenuPlugin, SoundSettingsMenuPlugin))
 			// Systems to handle the settings menu screen
-			.add_systems(OnEnter(SettingsMenuState::Main), settings_menu_setup)
+			.add_systems(OnEnter(MenuState::Settings), settings_menu_setup)
 			.add_systems(
-				OnExit(SettingsMenuState::Main),
+				OnExit(MenuState::Settings),
 				despawn_screen::<OnSettingsMenuScreen>
 			)
 			.add_systems(
 				Update,
-				settings_menu_action.run_if(in_state(SettingsMenuState::Main))
+				settings_menu_action.run_if(in_state(MenuState::Settings))
 			);
 	}
-}
-
-// State used for the current menu screen
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub enum SettingsMenuState {
-	Main,
-	Display,
-	Sound,
-	#[default]
-	Disabled
 }
 
 // All actions that can be triggered from a button click
@@ -90,7 +76,7 @@ fn settings_menu_setup(mut commands: Commands) {
 						align_items: AlignItems::Center,
 						..default()
 					},
-					background_color: Color::CRIMSON.into(),
+					background_color: MENU_PANEL.into(),
 					..default()
 				})
 				.with_children(|parent| {
@@ -149,10 +135,7 @@ fn settings_menu_action(
 		(&Interaction, &SettingsMenuButtonAction),
 		(Changed<Interaction>, With<Button>)
 	>,
-	mut main_menu_state: ResMut<NextState<MenuState>>,
-	mut settings_menu_state: ResMut<NextState<SettingsMenuState>>,
-	mut display_menu_state: ResMut<NextState<DisplaySettingsMenuState>>,
-	mut sound_menu_state: ResMut<NextState<SoundSettingsMenuState>>
+	mut menu_state: ResMut<NextState<MenuState>>
 ) {
 	for (interaction, action) in &interaction_query {
 		if *interaction != Interaction::Pressed {
@@ -162,16 +145,13 @@ fn settings_menu_action(
 		use SettingsMenuButtonAction::*;
 		match action {
 			Display => {
-				settings_menu_state.set(SettingsMenuState::Display);
-				display_menu_state.set(DisplaySettingsMenuState::Main);
+				menu_state.set(MenuState::SettingsDisplay);
 			},
 			Sound => {
-				settings_menu_state.set(SettingsMenuState::Sound);
-				sound_menu_state.set(SoundSettingsMenuState::Main);
+				menu_state.set(MenuState::SettingsSound);
 			},
 			Back => {
-				settings_menu_state.set(SettingsMenuState::Disabled);
-				main_menu_state.set(MenuState::Main);
+				menu_state.set(MenuState::Main);
 			}
 		}
 	}

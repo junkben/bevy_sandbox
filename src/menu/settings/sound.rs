@@ -1,38 +1,32 @@
 use bevy::prelude::*;
 
-use super::{
-	despawn_screen, setting_button, SelectedOption, NORMAL_BUTTON, TEXT_COLOR
-};
+use super::*;
+use crate::menu::MenuState;
 
 pub struct SoundSettingsMenuPlugin;
 
 impl Plugin for SoundSettingsMenuPlugin {
 	fn build(&self, app: &mut App) {
 		app.insert_resource(Volume::default())
-			.add_state::<SoundSettingsMenuState>()
 			// Systems to handle the sound settings screen
 			.add_systems(
-				OnEnter(SoundSettingsMenuState::Main),
+				OnEnter(MenuState::SettingsSound),
 				sound_settings_menu_setup
 			)
 			.add_systems(
-				OnExit(SoundSettingsMenuState::Main),
+				OnExit(MenuState::SettingsSound),
 				despawn_screen::<OnSoundSettingsMenuScreen>
 			)
 			.add_systems(
 				Update,
 				setting_button::<Volume>
-					.run_if(in_state(SoundSettingsMenuState::Main))
+					.run_if(in_state(MenuState::SettingsSound))
+			)
+			.add_systems(
+				Update,
+				sound_menu_action.run_if(in_state(MenuState::SettingsSound))
 			);
 	}
-}
-
-// State used for the current menu screen
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub enum SoundSettingsMenuState {
-	Main,
-	#[default]
-	Disabled
 }
 
 // All actions that can be triggered from a button click
@@ -91,7 +85,7 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
 						align_items: AlignItems::Center,
 						..default()
 					},
-					background_color: Color::CRIMSON.into(),
+					background_color: MENU_PANEL.into(),
 					..default()
 				})
 				.with_children(|parent| {
@@ -101,7 +95,7 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
 								align_items: AlignItems::Center,
 								..default()
 							},
-							background_color: Color::CRIMSON.into(),
+							background_color: MENU_PANEL.into(),
 							..default()
 						})
 						.with_children(|parent| {
@@ -145,4 +139,23 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
 						});
 				});
 		});
+}
+
+fn sound_menu_action(
+	interaction_query: Query<
+		(&Interaction, &SoundSettingsMenuButtonAction),
+		(Changed<Interaction>, With<Button>)
+	>,
+	mut menu_state: ResMut<NextState<MenuState>>
+) {
+	for (interaction, action) in &interaction_query {
+		if *interaction == Interaction::Pressed {
+			use SoundSettingsMenuButtonAction::*;
+			match action {
+				Back => {
+					menu_state.set(MenuState::Settings);
+				}
+			}
+		}
+	}
 }
