@@ -61,11 +61,11 @@ pub(super) fn read_translational_motion_start_events(
 pub(super) fn update_motion(
 	time: Res<Time>,
 	mut event_writer: EventWriter<TranslationalMotionDone>,
-	mut query: Query<(Entity, &mut Transform, &mut TranslationalMotion)>
+	mut query_motion: Query<(Entity, &mut Transform, &mut TranslationalMotion)>
 ) {
 	// Query all entities with a transform, as well as optionally velocity and
 	// acceleration
-	for (entity, mut transform, mut m) in query.iter_mut() {
+	for (entity, mut transform, mut m) in query_motion.iter_mut() {
 		// Store the initial values from last frame
 		m.x_0 = m.x;
 		m.v_0 = m.v;

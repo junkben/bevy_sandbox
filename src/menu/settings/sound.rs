@@ -142,13 +142,13 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
 }
 
 fn sound_menu_action(
-	interaction_query: Query<
+	query_button: Query<
 		(&Interaction, &SoundSettingsMenuButtonAction),
 		(Changed<Interaction>, With<Button>)
 	>,
 	mut menu_state: ResMut<NextState<MenuState>>
 ) {
-	for (interaction, action) in &interaction_query {
+	for (interaction, action) in &query_button {
 		if *interaction == Interaction::Pressed {
 			use SoundSettingsMenuButtonAction::*;
 			match action {

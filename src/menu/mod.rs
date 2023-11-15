@@ -72,12 +72,12 @@ pub struct SelectedOption;
 
 // This system handles changing all buttons color based on mouse interaction
 fn button_system(
-	mut interaction_query: Query<
+	mut query_button: Query<
 		(&Interaction, &mut BackgroundColor, Option<&SelectedOption>),
 		(Changed<Interaction>, With<Button>)
 	>
 ) {
-	for (interaction, mut color, selected) in &mut interaction_query {
+	for (interaction, mut color, selected) in &mut query_button {
 		*color = button_color(interaction, selected).into();
 	}
 }

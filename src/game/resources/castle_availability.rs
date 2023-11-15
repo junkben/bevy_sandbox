@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
-use crate::game::{move_tracker::MoveTracker, piece::Piece, position::Position};
+use crate::game::{
+	move_tracker::MoveTracker, piece::Piece, position::Position
+};
 
 pub struct CastleAvailabilityPlugin;
 impl Plugin for CastleAvailabilityPlugin {
@@ -191,9 +193,9 @@ impl CastleType {
 
 	fn king_has_moved(
 		&self,
-		piece_query: &Query<(Entity, &Piece, &Position, &MoveTracker)>
+		query_piece: &Query<(Entity, &Piece, &Position, &MoveTracker)>
 	) -> Option<bool> {
-		for (_, piece, position, move_tracker) in piece_query.iter() {
+		for (_, piece, position, move_tracker) in query_piece.iter() {
 			if piece == self.king_piece() && position == self.king_position() {
 				return Some(move_tracker.has_moved());
 			}

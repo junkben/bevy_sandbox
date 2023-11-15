@@ -30,13 +30,13 @@ fn spawn_initial_pieces(mut spawn_piece_writer: EventWriter<SpawnPiece>) {
 
 fn wait_for_piece_spawning(
 	mut turn_state: ResMut<NextState<TurnState>>,
-	piece_query: Query<(&Position, &Piece)>
+	query_piece: Query<(&Position, &Piece)>
 ) {
 	// Spawn pieces in proper squares
 	for (a, b) in INITIAL_PIECE_POSITIONS.iter() {
 		let mut spawned = false;
 
-		for (position, piece) in piece_query.iter() {
+		for (position, piece) in query_piece.iter() {
 			if position == a && piece == b {
 				spawned = true;
 				break;

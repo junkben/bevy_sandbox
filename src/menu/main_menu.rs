@@ -168,7 +168,7 @@ fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn main_menu_action(
-	interaction_query: Query<
+	query_button: Query<
 		(&Interaction, &MenuButtonAction),
 		(Changed<Interaction>, With<Button>)
 	>,
@@ -176,7 +176,7 @@ fn main_menu_action(
 	mut menu_state: ResMut<NextState<MenuState>>,
 	mut game_state: ResMut<NextState<GameState>>
 ) {
-	for (interaction, menu_button_action) in &interaction_query {
+	for (interaction, menu_button_action) in &query_button {
 		if *interaction == Interaction::Pressed {
 			use MenuButtonAction::*;
 			match menu_button_action {

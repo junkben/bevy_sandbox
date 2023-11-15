@@ -102,7 +102,7 @@ fn handle_event_user_select_square(
 
 fn handle_event_update_square_selection(
 	mut er: EventReader<UpdateSquareSelection>,
-	square_query: Query<(&Position, &mut Pickable), With<Square>>
+	query_square: Query<(&Position, &mut Pickable), With<Square>>
 ) {
 	// get event from EventReader
 	let Some(event) = er.into_iter().last() else {
@@ -110,15 +110,15 @@ fn handle_event_update_square_selection(
 		return;
 	};
 
-	update_square_selection(&event.positions, square_query)
+	update_square_selection(&event.positions, query_square)
 }
 
 fn update_square_selection(
 	positions: &Vec<Position>,
-	mut square_query: Query<(&Position, &mut Pickable), With<Square>>
+	mut query_square: Query<(&Position, &mut Pickable), With<Square>>
 ) {
 	// Give Selection components to square entities
-	for (p, mut pickable) in square_query.iter_mut() {
+	for (p, mut pickable) in query_square.iter_mut() {
 		// Add selection if the square's position is an available move
 		pickable.should_emit_events = positions.contains(p);
 	}
@@ -171,10 +171,10 @@ fn select_move(
 
 fn disable_square_selection(
 	mut commands: Commands,
-	mut pickable_query: Query<(Entity, &mut PickSelection), With<Square>>
+	mut query_pickable: Query<(Entity, &mut PickSelection), With<Square>>
 ) {
 	// Remove Selection components from square entities
-	for (entity, mut selection) in pickable_query.iter_mut() {
+	for (entity, mut selection) in query_pickable.iter_mut() {
 		selection.is_selected = false;
 
 		trace!("disabling pickable for square entity {:?}", entity);
@@ -184,10 +184,10 @@ fn disable_square_selection(
 
 fn disable_piece_selection(
 	mut commands: Commands,
-	pickable_query: Query<Entity, With<Piece>>
+	query_pickable: Query<Entity, With<Piece>>
 ) {
 	// Remove Selection components from piece entities
-	for entity in pickable_query.iter() {
+	for entity in query_pickable.iter() {
 		trace!("disabling pickable for piece entity {:?}", entity);
 		commands.entity(entity).insert(Pickable::IGNORE);
 	}
@@ -197,10 +197,10 @@ fn enable_piece_selection(
 	mut commands: Commands,
 	active_color: Res<ActiveColor>,
 	available_moves: Res<AvailableMoves>,
-	nonpickable_query: Query<(Entity, &Piece)>
+	query_nonpickable: Query<(Entity, &Piece)>
 ) {
 	// Give Selection components to pieces whose color matches the active one
-	for (entity, piece) in nonpickable_query.iter() {
+	for (entity, piece) in query_nonpickable.iter() {
 		// Continue if the entity has no available moves
 		let Some(moves) = available_moves.0.get(&entity) else {
 			error!("piece entity not found in AvailableMoves, skipping...");

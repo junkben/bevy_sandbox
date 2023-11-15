@@ -120,10 +120,10 @@ fn move_camera(
 	active_color: Res<ActiveColor>,
 	game_settings: Res<GameSettings>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
-	camera_query: Query<Entity, With<PanOrbitCamera>>
+	query_camera: Query<Entity, With<PanOrbitCamera>>
 ) {
 	if game_settings.should_rotate_camera {
-		let Some(entity) = camera_query.iter().last() else {
+		let Some(entity) = query_camera.iter().last() else {
 			error!("No camera found in query, cannot move camera");
 			return;
 		};

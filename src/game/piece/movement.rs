@@ -27,10 +27,14 @@ pub struct MovePieceToBoardPosition {
 fn move_piece_to_board_position(
 	mut events: EventReader<MovePieceToBoardPosition>,
 	mut event_writer: EventWriter<TranslationalMotionStart>,
-	mut entities: Query<(Entity, &mut Position, &mut MoveTracker), With<Piece>>
+	mut query_entities: Query<
+		(Entity, &mut Position, &mut MoveTracker),
+		With<Piece>
+	>
 ) {
 	for event in events.into_iter() {
-		let Ok((entity, mut position, mut mt)) = entities.get_mut(event.entity)
+		let Ok((entity, mut position, mut mt)) =
+			query_entities.get_mut(event.entity)
 		else {
 			error!("no matching entity");
 			return;

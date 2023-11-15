@@ -84,10 +84,10 @@ fn handle_event_move_selected(
 fn wait_for_piece_motion_to_complete(
 	mut event_reader: EventReader<TranslationalMotionDone>,
 	mut turn_state: ResMut<NextState<TurnState>>,
-	piece_query: Query<Entity, With<Piece>>
+	query_piece: Query<Entity, With<Piece>>
 ) {
 	for event in event_reader.into_iter() {
-		let Ok(_entity) = piece_query.get(event.entity) else {
+		let Ok(_entity) = query_piece.get(event.entity) else {
 			return;
 		};
 
