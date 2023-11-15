@@ -43,7 +43,7 @@ fn handle_event(
 	query_opposing_piece: Query<(Entity, &Position, &Piece)>
 ) {
 	// Consume CalculateAvailableMoves
-	let Some(_) = er_calculate_moves.into_iter().last() else {
+	let Some(_event) = er_calculate_moves.into_iter().last() else {
 		error!("not exactly one CalculateAvailableMoves event");
 		return;
 	};

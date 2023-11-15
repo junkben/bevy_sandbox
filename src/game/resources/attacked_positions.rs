@@ -30,13 +30,13 @@ pub struct AttackedPositions(pub HashSet<Position>);
 
 fn handle_event(
 	mut commands: Commands,
-	mut er: EventReader<UpdateAttackedPositions>,
+	mut er_do_update: EventReader<UpdateAttackedPositions>,
 	mut ew_update_done: EventWriter<UpdateAttackedPositionsDone>,
 	res_available_moves: Res<AvailableMoves>,
 	res_active_color: Res<ActiveColor>
 ) {
 	// Consume UpdateAttackedPositions
-	let Some(_) = er.into_iter().last() else {
+	let Some(_event) = er_do_update.into_iter().last() else {
 		error!("not exactly one UpdateAttackedPositions event");
 		return;
 	};

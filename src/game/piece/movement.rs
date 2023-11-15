@@ -25,14 +25,14 @@ pub struct MovePieceToBoardPosition {
 /// Turn "move entity to board position" event into a "translation motion start"
 /// event
 fn move_piece_to_board_position(
-	mut events: EventReader<MovePieceToBoardPosition>,
+	mut er_move_to_position: EventReader<MovePieceToBoardPosition>,
 	mut ew_start_motion: EventWriter<TranslationalMotionStart>,
 	mut query_entities: Query<
 		(Entity, &mut Position, &mut MoveTracker),
 		With<Piece>
 	>
 ) {
-	for event in events.into_iter() {
+	for event in er_move_to_position.into_iter() {
 		let Ok((entity, mut position, mut mt)) =
 			query_entities.get_mut(event.entity)
 		else {

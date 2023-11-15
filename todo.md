@@ -3,6 +3,5 @@
 - Menus
     - Add menu for changing gameplay settings
 - Replay Mode
-- Rename queries
-- Rename event_writers
-- Rename event_readers
+- Rename resources
+- Abstract resources and queries

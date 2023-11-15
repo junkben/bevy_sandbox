@@ -64,12 +64,12 @@ pub struct SpawnPiece {
 
 fn handle_event_spawn_piece(
 	mut commands: Commands,
-	mut spawn_piece_reader: EventReader<SpawnPiece>,
+	mut er_spawn_piece: EventReader<SpawnPiece>,
 	asset_server: Res<AssetServer>,
 	mut materials: ResMut<Assets<StandardMaterial>>,
 	theme: Res<Theme>
 ) {
-	for spawn_piece_event in spawn_piece_reader.into_iter() {
+	for spawn_piece_event in er_spawn_piece.into_iter() {
 		let piece = spawn_piece_event.piece;
 		let position = spawn_piece_event.position;
 
@@ -88,9 +88,9 @@ pub struct PieceCaptured {
 
 fn handle_event_piece_captured(
 	mut commands: Commands,
-	mut er: EventReader<PieceCaptured>
+	mut er_piece_captured: EventReader<PieceCaptured>
 ) {
-	for event in er.into_iter() {
+	for event in er_piece_captured.into_iter() {
 		commands.entity(event.entity).despawn();
 	}
 }

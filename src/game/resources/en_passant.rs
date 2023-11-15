@@ -39,12 +39,12 @@ pub enum EnPassantState {
 
 fn handle_event(
 	mut commands: Commands,
-	mut event_reader: EventReader<CheckEnPassant>,
+	mut er_do_check: EventReader<CheckEnPassant>,
 	mut ew_check_done: EventWriter<CheckEnPassantDone>,
 	res_move_history: Res<MoveHistory>
 ) {
 	// Consume CheckEnPassant
-	let Some(_) = event_reader.into_iter().last() else {
+	let Some(_event) = er_do_check.into_iter().last() else {
 		error!("not exactly one CheckEnPassant event");
 		return;
 	};

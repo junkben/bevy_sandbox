@@ -51,10 +51,10 @@ pub struct SetCameraTargetAlpha {
 }
 
 fn check_event_set_camera_target_alpha(
-	mut event_reader: EventReader<SetCameraTargetAlpha>,
+	mut er_set_target_alpha: EventReader<SetCameraTargetAlpha>,
 	mut query_camera: Query<&mut PanOrbitCamera>
 ) {
-	for event in event_reader.into_iter() {
+	for event in er_set_target_alpha.into_iter() {
 		let Ok(mut camera) = query_camera.get_mut(event.entity) else {
 			return;
 		};

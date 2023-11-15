@@ -45,12 +45,12 @@ impl Plugin for SelectMovePlugin {
 
 fn handle_event_user_select_piece(
 	mut commands: Commands,
-	mut event_reader: EventReader<UserSelectedPiece>,
+	mut er_user_selected: EventReader<UserSelectedPiece>,
 	mut ew_selection_update: EventWriter<UpdateSquareSelection>,
 	res_available_moves: Res<AvailableMoves>,
 	query_piece: Query<Entity, With<Piece>>
 ) {
-	let Some(event) = event_reader.into_iter().last() else {
+	let Some(event) = er_user_selected.into_iter().last() else {
 		error!("not exactly one SelectPiece event");
 		return;
 	};
@@ -73,14 +73,14 @@ fn handle_event_user_select_piece(
 
 fn handle_event_user_select_square(
 	mut commands: Commands,
-	mut er: EventReader<UserSelectedSquare>,
+	mut er_user_selected: EventReader<UserSelectedSquare>,
 	mut ew_move_selected: EventWriter<MoveSelected>,
 	mut res_turn_state: ResMut<NextState<TurnState>>,
 	res_selected_piece: Res<SelectedPiece>,
 	res_available_moves: Res<AvailableMoves>,
 	query_square: Query<&Position, With<Square>>
 ) {
-	let Some(event) = er.into_iter().last() else {
+	let Some(event) = er_user_selected.into_iter().last() else {
 		error!("not exactly one SelectSquare event");
 		return;
 	};
@@ -101,11 +101,11 @@ fn handle_event_user_select_square(
 }
 
 fn handle_event_update_square_selection(
-	mut er: EventReader<UpdateSquareSelection>,
+	mut er_update_selection: EventReader<UpdateSquareSelection>,
 	query_square: Query<(&Position, &mut Pickable), With<Square>>
 ) {
 	// get event from EventReader
-	let Some(event) = er.into_iter().last() else {
+	let Some(event) = er_update_selection.into_iter().last() else {
 		error!("not exactly one UpdateSquareSelection event");
 		return;
 	};

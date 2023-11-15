@@ -61,36 +61,36 @@ impl TurnStartChecklist {
 }
 
 fn update_checklist(
-	mut event_reader_castle: EventReader<CheckCastleAvailabilityDone>,
+	mut er_castle: EventReader<CheckCastleAvailabilityDone>,
 	mut ew_moves: EventWriter<CalculateAvailableMoves>,
-	mut event_reader_moves: EventReader<CalculateAvailableMovesDone>,
+	mut er_moves: EventReader<CalculateAvailableMovesDone>,
 	mut ew_attacked: EventWriter<UpdateAttackedPositions>,
-	mut event_reader_attacked: EventReader<UpdateAttackedPositionsDone>,
+	mut er_attacked: EventReader<UpdateAttackedPositionsDone>,
 	mut ew_en_passant: EventWriter<CheckEnPassant>,
-	mut event_reader_en_passant: EventReader<CheckEnPassantDone>,
+	mut er_en_passant: EventReader<CheckEnPassantDone>,
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
 	mut turn_state: ResMut<NextState<TurnState>>
 ) {
-	if let Some(_) = event_reader_attacked.iter().last() {
+	if let Some(_event) = er_attacked.iter().last() {
 		start_turn_checklist.update_attacked_positions = true;
 		debug!("consumed UpdateAttackedPositionsDone");
 	};
 
-	if let Some(_) = event_reader_moves.iter().last() {
+	if let Some(_event) = er_moves.iter().last() {
 		start_turn_checklist.calculated_moves = true;
 		debug!("consumed CalculateAvailableMovesDone");
 
 		ew_attacked.send(UpdateAttackedPositions)
 	};
 
-	if let Some(_) = event_reader_en_passant.iter().last() {
+	if let Some(_event) = er_en_passant.iter().last() {
 		start_turn_checklist.check_en_passant = true;
 		debug!("consumed CheckEnPassantDone");
 
 		ew_moves.send(CalculateAvailableMoves)
 	};
 
-	if let Some(_) = event_reader_castle.iter().last() {
+	if let Some(_event) = er_castle.iter().last() {
 		start_turn_checklist.check_castle_availability = true;
 		debug!("consumed CheckCastleAvailabilityDone");
 

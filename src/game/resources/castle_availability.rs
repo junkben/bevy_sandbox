@@ -25,12 +25,12 @@ pub struct CheckCastleAvailabilityDone;
 
 fn handle_event(
 	mut commands: Commands,
-	mut er: EventReader<CheckCastleAvailability>,
+	mut er_do_check: EventReader<CheckCastleAvailability>,
 	mut ew_check_done: EventWriter<CheckCastleAvailabilityDone>,
 	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>
 ) {
 	// Consume CheckCastleAvailability
-	let Some(_) = er.into_iter().last() else {
+	let Some(_event) = er_do_check.into_iter().last() else {
 		error!("not exactly one CheckCastleAvailability event");
 		return;
 	};

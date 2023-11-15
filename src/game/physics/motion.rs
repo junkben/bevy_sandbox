@@ -39,10 +39,10 @@ impl TranslationalMotion {
 }
 
 pub(super) fn read_translational_motion_start_events(
-	mut event_reader: EventReader<TranslationalMotionStart>,
+	mut er_start_motion: EventReader<TranslationalMotionStart>,
 	mut query_motion: Query<(Entity, &mut TranslationalMotion)>
 ) {
-	for event in &mut event_reader.into_iter() {
+	for event in &mut er_start_motion.into_iter() {
 		let Ok((entity, mut motion)) = query_motion.get_mut(event.entity)
 		else {
 			error!("no matching entity in translational motion query");
