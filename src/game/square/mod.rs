@@ -1,14 +1,13 @@
+mod color;
+mod selection;
+mod spawn;
+
 use bevy::prelude::*;
+pub use color::SquareColor;
+pub use selection::{SquareSelectionBundle, UserSelectedSquare};
+pub use spawn::spawn_square;
 
-use super::color::SquareColor;
 use crate::game::{position::Position, resources::Theme};
-
-pub const SQUARE_LIGHT: Square = Square {
-	square_color: SquareColor::Light
-};
-pub const SQUARE_DARK: Square = Square {
-	square_color: SquareColor::Dark
-};
 
 const SQUARE_SIZE: f32 = 1.0;
 const SCALE: Vec3 = Vec3::ONE;

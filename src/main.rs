@@ -5,6 +5,7 @@ mod game;
 mod log;
 mod menu;
 mod splash;
+mod traits;
 mod window;
 
 const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);

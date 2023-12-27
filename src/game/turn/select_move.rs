@@ -3,10 +3,10 @@ use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::MoveSelected, TurnState};
 use crate::game::{
-	board::{Square, UserSelectedSquare},
 	piece::{Piece, UserSelectedPiece},
 	position::Position,
 	resources::{ActiveColor, AvailableMoves},
+	square::{Square, UserSelectedSquare},
 	MoveInfo
 };
 

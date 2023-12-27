@@ -14,6 +14,7 @@ mod piece;
 mod position;
 pub mod resources;
 mod settings;
+mod square;
 mod turn;
 
 use bevy::prelude::*;

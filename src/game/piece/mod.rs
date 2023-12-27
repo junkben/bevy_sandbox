@@ -118,7 +118,7 @@ impl Piece {
 		materials: &mut ResMut<Assets<StandardMaterial>>,
 		theme: &Res<Theme>
 	) -> Handle<StandardMaterial> {
-		let base_color = self.color.color(theme);
+		let base_color: Color = self.color.color(theme);
 		materials.add(StandardMaterial {
 			base_color,
 			..default()
@@ -136,10 +136,11 @@ impl Piece {
 		position: &Position,
 		theme: &Res<Theme>
 	) -> PbrBundle {
-		let mesh = self.mesh_handle(asset_server);
-		let material = self.material_handle(materials, theme);
-		let translation = self.translation(position.clone());
-		let transform =
+		let mesh: Handle<Mesh> = self.mesh_handle(asset_server);
+		let material: Handle<StandardMaterial> =
+			self.material_handle(materials, theme);
+		let translation: Vec3 = self.translation(position.clone());
+		let transform: Transform =
 			Transform::from_translation(translation).with_scale(SCALE);
 
 		PbrBundle {
