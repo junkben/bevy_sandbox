@@ -4,16 +4,16 @@ use crate::game::resources::Theme;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SquareColor {
-	White,
-	Black
+	Light,
+	Dark
 }
 
 impl SquareColor {
 	pub fn color(&self, theme: &Res<Theme>) -> Color {
 		use SquareColor::*;
 		match self {
-			White => theme.data().square_white,
-			Black => theme.data().square_black
+			Light => theme.data().square_light,
+			Dark => theme.data().square_dark
 		}
 	}
 }

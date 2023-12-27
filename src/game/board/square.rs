@@ -3,11 +3,11 @@ use bevy::prelude::*;
 use super::color::SquareColor;
 use crate::game::{position::Position, resources::Theme};
 
-pub const WHITE_SQUARE: Square = Square {
-	color: SquareColor::White
+pub const SQUARE_LIGHT: Square = Square {
+	square_color: SquareColor::Light
 };
-pub const BLACK_SQUARE: Square = Square {
-	color: SquareColor::Black
+pub const SQUARE_DARK: Square = Square {
+	square_color: SquareColor::Dark
 };
 
 const SQUARE_SIZE: f32 = 1.0;
@@ -15,7 +15,7 @@ const SCALE: Vec3 = Vec3::ONE;
 
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Square {
-	pub color: SquareColor
+	pub square_color: SquareColor
 }
 
 impl Square {
@@ -32,7 +32,7 @@ impl Square {
 		materials: &mut ResMut<Assets<StandardMaterial>>,
 		theme: &Res<Theme>
 	) -> Handle<StandardMaterial> {
-		let base_color = self.color.color(theme);
+		let base_color = self.square_color.color(theme);
 		materials.add(StandardMaterial {
 			base_color,
 			..default()

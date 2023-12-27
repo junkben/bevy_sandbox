@@ -5,3 +5,8 @@
 - Replay Mode
 - Rename resources
 - Abstract resources and queries
+- Rework "checklist" logic
+- Add Player struct
+    - Should it handle all user input?
+        - probably
+- Use AttackedPositions to determine Check and Checkmate

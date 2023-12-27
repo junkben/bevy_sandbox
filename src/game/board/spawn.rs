@@ -72,8 +72,8 @@ pub fn spawn_board(
 fn determine_square(board_position: &Position) -> Square {
 	let (x, z) = board_position.xz();
 	if (x + z) % 2 == 0 {
-		WHITE_SQUARE
+		SQUARE_LIGHT
 	} else {
-		BLACK_SQUARE
+		SQUARE_DARK
 	}
 }

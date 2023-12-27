@@ -6,6 +6,7 @@ use bevy::prelude::*;
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct HalfmoveTracker(u32);
 
+#[allow(dead_code)]
 impl HalfmoveTracker {
 	pub fn dec(&mut self) {
 		self.0 = match self.0 == u32::MIN {

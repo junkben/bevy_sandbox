@@ -69,6 +69,7 @@ impl std::fmt::Display for AvailableMoves {
 	}
 }
 
+#[allow(dead_code)]
 impl AvailableMoves {
 	pub fn get(&self, k: &Entity) -> Option<&Vec<MoveInfo>> { self.0.get(k) }
 
