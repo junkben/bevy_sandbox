@@ -4,7 +4,9 @@ mod spawn;
 
 use bevy::prelude::*;
 pub use color::SquareColor;
-pub use selection::{SquareSelectionBundle, UserSelectedSquare};
+pub use selection::{
+	SquareSelectPlugin, SquareSelectionBundle, UserSelectedSquare
+};
 pub use spawn::spawn_square;
 
 use crate::game::{position::Position, resources::Theme};
@@ -12,18 +14,22 @@ use crate::game::{position::Position, resources::Theme};
 const SQUARE_SIZE: f32 = 1.0;
 const SCALE: Vec3 = Vec3::ONE;
 
+pub struct SquarePlugin;
+impl Plugin for SquarePlugin {
+	fn build(&self, app: &mut App) { app.add_plugins(SquareSelectPlugin); }
+}
+
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Square {
 	pub square_color: SquareColor
 }
 
 impl Square {
-	fn mesh_handle(
-		&self,
-		meshes: &mut ResMut<Assets<Mesh>>,
-		size: f32
-	) -> Handle<Mesh> {
-		meshes.add(Mesh::from(shape::Plane { size, ..default() }))
+	fn mesh_handle(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
+		meshes.add(Mesh::from(shape::Cube {
+			size: SQUARE_SIZE,
+			..default()
+		}))
 	}
 
 	fn material_handle(
@@ -38,7 +44,9 @@ impl Square {
 		})
 	}
 
-	fn mesh_translation_offset(&self) -> Vec3 { Vec3::ZERO }
+	fn mesh_translation_offset(&self) -> Vec3 {
+		Vec3::new(0.0, -SQUARE_SIZE / 2.0, 0.0)
+	}
 
 	fn translation(&self, board_position: Position) -> Vec3 {
 		self.mesh_translation_offset() + board_position.translation()
@@ -51,8 +59,7 @@ impl Square {
 		board_position: &Position,
 		theme: &Res<Theme>
 	) -> PbrBundle {
-		let size = SQUARE_SIZE;
-		let mesh = self.mesh_handle(meshes, size);
+		let mesh = self.mesh_handle(meshes);
 		let material = self.material_handle(materials, theme);
 		let translation = self.translation(board_position.clone());
 		let transform =

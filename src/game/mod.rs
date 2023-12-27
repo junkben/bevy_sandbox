@@ -44,7 +44,8 @@ impl Plugin for GamePlugin {
 				light::ChessLightPlugin,
 				piece::PiecesPlugin,
 				board::BoardPlugin,
-				physics::MotionPlugin
+				physics::MotionPlugin,
+				square::SquareSelectPlugin
 			))
 			.add_systems(
 				OnEnter(GameState::Game),
