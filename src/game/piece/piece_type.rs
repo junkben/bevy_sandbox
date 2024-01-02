@@ -19,7 +19,7 @@ impl PieceType {
 	pub const QUEEN: PieceType = Queen;
 	pub const ROOK: PieceType = Rook;
 
-	pub fn mesh_file_name(&self) -> &'static str {
+	pub const fn mesh_file_name(&self) -> &'static str {
 		match self {
 			King => "king.glb#Mesh0/Primitive0",
 			Queen => "queen.glb#Mesh0/Primitive0",
@@ -30,15 +30,14 @@ impl PieceType {
 		}
 	}
 
-	pub fn mesh_translation_offset(&self) -> Vec3 {
-		let (x, y, z): (f32, f32, f32) = match self {
-			King => (0., 0., 0.),
-			Queen => (0., 0., 0.),
-			Rook => (0., 0., 0.),
-			Bishop => (0., 0., 0.),
-			Knight => (0., 0., 0.),
-			Pawn => (0., 0., 0.)
-		};
-		Vec3 { x, y, z }
+	pub const fn mesh_translation_offset(&self) -> Vec3 {
+		match self {
+			King => Vec3::new(0., 0., 0.),
+			Queen => Vec3::new(0., 0., 0.),
+			Rook => Vec3::new(0., 0., 0.),
+			Bishop => Vec3::new(0., 0., 0.),
+			Knight => Vec3::new(0., 0., 0.),
+			Pawn => Vec3::new(0., 0., 0.)
+		}
 	}
 }

@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-const SPEED: f32 = std::f32::consts::PI;
-
 #[derive(Event)]
 pub struct TranslationalMotionStart {
 	pub entity:      Entity,
@@ -28,6 +26,8 @@ pub struct TranslationalMotion {
 }
 
 impl TranslationalMotion {
+	const SPEED: f32 = std::f32::consts::PI;
+
 	pub fn new(translation: Vec3) -> TranslationalMotion {
 		TranslationalMotion {
 			x_0: translation,
@@ -78,7 +78,7 @@ pub(super) fn update_motion(
 		// Calculate velocity
 		let displacement: Vec3 = m.x_target - m.x_0;
 		let direction: Vec3 = displacement.normalize();
-		let v_t: Vec3 = direction * Vec3::splat(SPEED);
+		let v_t: Vec3 = direction * Vec3::splat(TranslationalMotion::SPEED);
 
 		// Grab the time since last frame
 		let t = time.delta_seconds();

@@ -20,11 +20,8 @@ impl Plugin for GameStartPlugin {
 
 fn spawn_initial_pieces(mut ew_spawn_piece: EventWriter<SpawnPiece>) {
 	// Spawn pieces in proper squares
-	for (position, piece) in INITIAL_PIECE_POSITIONS.iter() {
-		ew_spawn_piece.send(SpawnPiece {
-			piece:    piece.clone(),
-			position: position.clone()
-		});
+	for (position, piece) in INITIAL_PIECE_POSITIONS.clone().into_iter() {
+		ew_spawn_piece.send(SpawnPiece { piece, position });
 	}
 }
 

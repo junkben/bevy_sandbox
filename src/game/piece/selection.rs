@@ -1,4 +1,4 @@
-use bevy::{math::vec4, prelude::*};
+use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
 pub struct PieceSelectPlugin;
@@ -20,39 +20,54 @@ impl Default for PieceSelectionBundle {
 	fn default() -> Self {
 		Self {
 			pickable:           Pickable::IGNORE,
-			interaction:        interaction(),
-			selection:          selection(),
-			highlight:          highlight(),
-			raycast:            raycast(),
-			highlight_override: highlight_override()
+			interaction:        Self::interaction(),
+			selection:          Self::selection(),
+			highlight:          Self::highlight(),
+			raycast:            Self::raycast(),
+			highlight_override: Self::highlight_override()
 		}
 	}
 }
 
-fn interaction() -> PickingInteraction { PickingInteraction::default() }
+impl PieceSelectionBundle {
+	const HIGHLIGHT_HOVERED_OFFSET: Vec4 = Vec4::new(0.3, 0.3, 0.3, 0.0);
+	const HIGHLIGHT_PRESSED_OFFSET: Vec4 = Vec4::new(0.3, 0.3, 0.3, 0.0);
+	const HIGHLIGHT_SELECTED_OFFSET: Vec4 = Vec4::new(0.3, 0.3, 0.3, 0.0);
 
-fn selection() -> PickSelection { PickSelection::default() }
+	fn interaction() -> PickingInteraction { PickingInteraction::default() }
 
-fn highlight() -> PickHighlight { PickHighlight::default() }
+	fn selection() -> PickSelection { PickSelection::default() }
 
-fn highlight_override() -> Highlight<StandardMaterial> {
-	Highlight {
-		hovered:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-			base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
-			..matl.to_owned()
-		})),
-		pressed:  Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-			base_color: matl.base_color + vec4(0.6, 0.6, 0.6, 0.0),
-			..matl.to_owned()
-		})),
-		selected: Some(HighlightKind::new_dynamic(|matl| StandardMaterial {
-			base_color: matl.base_color + vec4(0.3, 0.3, 0.3, 0.0),
-			..matl.to_owned()
-		}))
+	fn highlight() -> PickHighlight { PickHighlight::default() }
+
+	fn highlight_override() -> Highlight<StandardMaterial> {
+		Highlight {
+			hovered:  Some(HighlightKind::new_dynamic(|matl| {
+				StandardMaterial {
+					base_color: matl.base_color
+						+ Self::HIGHLIGHT_HOVERED_OFFSET,
+					..matl.to_owned()
+				}
+			})),
+			pressed:  Some(HighlightKind::new_dynamic(|matl| {
+				StandardMaterial {
+					base_color: matl.base_color
+						+ Self::HIGHLIGHT_PRESSED_OFFSET,
+					..matl.to_owned()
+				}
+			})),
+			selected: Some(HighlightKind::new_dynamic(|matl| {
+				StandardMaterial {
+					base_color: matl.base_color
+						+ Self::HIGHLIGHT_SELECTED_OFFSET,
+					..matl.to_owned()
+				}
+			}))
+		}
 	}
-}
 
-fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
+	fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
+}
 
 #[derive(Event)]
 pub struct UserSelectedPiece {

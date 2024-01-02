@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
-use super::{Square, SquareColor, SquareSelectionBundle, UserSelectedSquare};
+use super::{Square, SquareSelectionBundle, UserSelectedSquare};
 use crate::game::{position::Position, resources::Theme};
 
 #[derive(Bundle)]

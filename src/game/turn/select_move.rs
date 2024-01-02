@@ -120,7 +120,9 @@ fn update_square_selection(
 	// Give Selection components to square entities
 	for (p, mut pickable) in query_square.iter_mut() {
 		// Add selection if the square's position is an available move
-		pickable.should_emit_events = positions.contains(p);
+		let should = positions.contains(p);
+		pickable.should_emit_events = should;
+		pickable.should_block_lower = should;
 	}
 }
 

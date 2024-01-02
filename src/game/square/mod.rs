@@ -11,9 +11,6 @@ pub use spawn::{spawn_square, SquareBundle};
 
 use crate::game::{position::Position, resources::Theme};
 
-const SQUARE_SIZE: f32 = 1.0;
-const SCALE: Vec3 = Vec3::ONE;
-
 pub struct SquarePlugin;
 impl Plugin for SquarePlugin {
 	fn build(&self, app: &mut App) { app.add_plugins(SquareSelectPlugin); }
@@ -25,9 +22,12 @@ pub struct Square {
 }
 
 impl Square {
+	const SCALE: Vec3 = Vec3::ONE;
+	const SIZE: f32 = 1.0;
+
 	fn mesh_handle(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
 		meshes.add(Mesh::from(shape::Cube {
-			size: SQUARE_SIZE,
+			size: Square::SIZE,
 			..default()
 		}))
 	}
@@ -45,7 +45,7 @@ impl Square {
 	}
 
 	fn mesh_translation_offset(&self) -> Vec3 {
-		Vec3::new(0.0, -SQUARE_SIZE / 2.0, 0.0)
+		Vec3::new(0.0, -Square::SIZE / 2.0, 0.0)
 	}
 
 	fn translation(&self, board_position: Position) -> Vec3 {
@@ -63,7 +63,7 @@ impl Square {
 		let material = self.material_handle(materials, theme);
 		let translation = self.translation(board_position.clone());
 		let transform =
-			Transform::from_translation(translation).with_scale(SCALE);
+			Transform::from_translation(translation).with_scale(Square::SCALE);
 
 		PbrBundle {
 			mesh,
