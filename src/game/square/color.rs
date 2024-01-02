@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::game::resources::Theme;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub enum SquareColor {
 	Light,
 	Dark

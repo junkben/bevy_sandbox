@@ -5,7 +5,7 @@ use super::{Square, SquareColor, SquareSelectionBundle, UserSelectedSquare};
 use crate::game::{position::Position, resources::Theme};
 
 #[derive(Bundle)]
-struct SquareBundle {
+pub struct SquareBundle {
 	square:           Square,
 	pbr_bundle:       PbrBundle,
 	position:         Position,
@@ -36,18 +36,15 @@ pub fn spawn_square(
 	meshes: &mut ResMut<Assets<Mesh>>,
 	materials: &mut ResMut<Assets<StandardMaterial>>,
 	theme: &Res<Theme>,
-	square_color: &SquareColor,
+	square: &Square,
 	board_position: &Position
 ) {
-	let square: Square = Square {
-		square_color: *square_color
-	};
 	let pbr_bundle =
 		square.pbr_bundle(meshes, materials, board_position, &theme);
 
 	// Assemble the square bundle
 	let square_bundle =
-		SquareBundle::new(square, pbr_bundle, board_position.clone());
+		SquareBundle::new(*square, pbr_bundle, board_position.clone());
 
 	// Spawn the square bundle
 	commands.spawn(square_bundle);

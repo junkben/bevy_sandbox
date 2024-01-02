@@ -7,7 +7,7 @@ pub use color::SquareColor;
 pub use selection::{
 	SquareSelectPlugin, SquareSelectionBundle, UserSelectedSquare
 };
-pub use spawn::spawn_square;
+pub use spawn::{spawn_square, SquareBundle};
 
 use crate::game::{position::Position, resources::Theme};
 
