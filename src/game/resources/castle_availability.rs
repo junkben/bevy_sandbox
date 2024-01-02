@@ -30,7 +30,7 @@ fn handle_event(
 	query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>
 ) {
 	// Consume CheckCastleAvailability
-	let Some(_event) = er_do_check.into_iter().last() else {
+	let Some(_event) = er_do_check.read().last() else {
 		error!("not exactly one CheckCastleAvailability event");
 		return;
 	};

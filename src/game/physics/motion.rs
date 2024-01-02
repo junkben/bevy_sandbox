@@ -42,7 +42,7 @@ pub(super) fn read_translational_motion_start_events(
 	mut er_start_motion: EventReader<TranslationalMotionStart>,
 	mut query_motion: Query<(Entity, &mut TranslationalMotion)>
 ) {
-	for event in &mut er_start_motion.into_iter() {
+	for event in &mut er_start_motion.read() {
 		let Ok((entity, mut motion)) = query_motion.get_mut(event.entity)
 		else {
 			error!("no matching entity in translational motion query");

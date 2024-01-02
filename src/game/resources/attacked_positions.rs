@@ -36,7 +36,7 @@ fn handle_event(
 	res_active_color: Res<ActiveColor>
 ) {
 	// Consume UpdateAttackedPositions
-	let Some(_event) = er_do_update.into_iter().last() else {
+	let Some(_event) = er_do_update.read().last() else {
 		error!("not exactly one UpdateAttackedPositions event");
 		return;
 	};

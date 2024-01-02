@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_mod_picking::prelude::*;
+use bevy_mod_picking::{backends::raycast::RaycastPickable, prelude::*};
 
 pub struct PieceSelectPlugin;
 impl Plugin for PieceSelectPlugin {
@@ -12,7 +12,7 @@ pub struct PieceSelectionBundle {
 	interaction:        PickingInteraction,
 	selection:          PickSelection,
 	highlight:          PickHighlight,
-	raycast:            RaycastPickTarget,
+	raycast:            RaycastPickable,
 	highlight_override: Highlight<StandardMaterial>
 }
 
@@ -66,7 +66,7 @@ impl PieceSelectionBundle {
 		}
 	}
 
-	fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
+	fn raycast() -> RaycastPickable { RaycastPickable::default() }
 }
 
 #[derive(Event)]

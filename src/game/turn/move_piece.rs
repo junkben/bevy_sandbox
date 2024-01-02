@@ -35,7 +35,7 @@ fn handle_event_move_selected(
 	mut move_history: ResMut<MoveHistory>,
 	castle_availability: Res<CastleAvailability>
 ) {
-	let Some(event) = er_move_selected.into_iter().last() else {
+	let Some(event) = er_move_selected.read().last() else {
 		error!("not exactly one MoveSelected event");
 		return;
 	};
@@ -86,7 +86,7 @@ fn wait_for_piece_motion_to_complete(
 	mut turn_state: ResMut<NextState<TurnState>>,
 	query_piece: Query<Entity, With<Piece>>
 ) {
-	for event in er_motion_done.into_iter() {
+	for event in er_motion_done.read() {
 		let Ok(_entity) = query_piece.get(event.entity) else {
 			return;
 		};

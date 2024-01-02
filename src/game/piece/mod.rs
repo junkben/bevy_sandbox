@@ -41,12 +41,6 @@ impl Plugin for PiecesPlugin {
 	}
 }
 
-const SCALE: Vec3 = Vec3 {
-	x: 0.012,
-	y: 0.012,
-	z: 0.012
-};
-
 /// A component that represents a chess piece
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece {
@@ -70,6 +64,13 @@ impl std::fmt::Display for Piece {
 
 #[allow(dead_code)]
 impl Piece {
+	const MESH_PATH: &'static str = "models/chess/";
+	const SCALE: Vec3 = Vec3 {
+		x: 0.012,
+		y: 0.012,
+		z: 0.012
+	};
+
 	chess_pieces!(
 		WHITE_KING, WHITE, KING;
 		WHITE_QUEEN, WHITE, QUEEN;
@@ -109,8 +110,9 @@ impl Piece {
 	}
 
 	fn mesh_handle(&self, asset_server: &Res<AssetServer>) -> Handle<Mesh> {
-		let path = format!("models/chess/{}", self.piece_type.mesh_file_name());
-		asset_server.load(path.as_str())
+		let path =
+			format!("{}{}", Piece::MESH_PATH, self.piece_type.mesh_file_name());
+		asset_server.load(path)
 	}
 
 	fn material_handle(
@@ -141,7 +143,7 @@ impl Piece {
 			self.material_handle(materials, theme);
 		let translation: Vec3 = self.translation(position.clone());
 		let transform: Transform =
-			Transform::from_translation(translation).with_scale(SCALE);
+			Transform::from_translation(translation).with_scale(Piece::SCALE);
 
 		PbrBundle {
 			mesh,

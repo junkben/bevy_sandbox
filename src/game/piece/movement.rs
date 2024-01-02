@@ -32,7 +32,7 @@ fn move_piece_to_board_position(
 		With<Piece>
 	>
 ) {
-	for event in er_move_to_position.into_iter() {
+	for event in er_move_to_position.read() {
 		let Ok((entity, mut position, mut mt)) =
 			query_entities.get_mut(event.entity)
 		else {

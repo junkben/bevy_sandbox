@@ -35,6 +35,7 @@ fn menu_setup(mut menu_state: ResMut<NextState<MenuState>>) {
 }
 
 // State used for the current menu screen
+#[allow(dead_code)]
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum MenuState {
 	Main,

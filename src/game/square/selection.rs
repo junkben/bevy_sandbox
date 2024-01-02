@@ -1,5 +1,5 @@
 use bevy::{math::vec4, prelude::*};
-use bevy_mod_picking::prelude::*;
+use bevy_mod_picking::{backends::raycast::RaycastPickable, prelude::*};
 
 pub struct SquareSelectPlugin;
 impl Plugin for SquareSelectPlugin {
@@ -12,7 +12,7 @@ pub struct SquareSelectionBundle {
 	interaction:        PickingInteraction,
 	selection:          PickSelection,
 	highlight:          PickHighlight,
-	raycast:            RaycastPickTarget,
+	raycast:            RaycastPickable,
 	highlight_override: Highlight<StandardMaterial>
 }
 
@@ -52,7 +52,8 @@ fn highlight_override() -> Highlight<StandardMaterial> {
 	}
 }
 
-fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
+// fn raycast() -> RaycastPickTarget { RaycastPickTarget::default() }
+fn raycast() -> RaycastPickable { RaycastPickable::default() }
 
 #[derive(Event)]
 pub struct UserSelectedSquare {

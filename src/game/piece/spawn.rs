@@ -69,7 +69,7 @@ fn handle_event_spawn_piece(
 	mut materials: ResMut<Assets<StandardMaterial>>,
 	theme: Res<Theme>
 ) {
-	for spawn_piece_event in er_spawn_piece.into_iter() {
+	for spawn_piece_event in er_spawn_piece.read() {
 		let piece = spawn_piece_event.piece;
 		let position = spawn_piece_event.position;
 
@@ -90,7 +90,7 @@ fn handle_event_piece_captured(
 	mut commands: Commands,
 	mut er_piece_captured: EventReader<PieceCaptured>
 ) {
-	for event in er_piece_captured.into_iter() {
+	for event in er_piece_captured.read() {
 		commands.entity(event.entity).despawn();
 	}
 }

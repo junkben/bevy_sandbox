@@ -71,26 +71,26 @@ fn update_checklist(
 	mut start_turn_checklist: ResMut<TurnStartChecklist>,
 	mut turn_state: ResMut<NextState<TurnState>>
 ) {
-	if let Some(_event) = er_attacked.iter().last() {
+	if let Some(_event) = er_attacked.read().last() {
 		start_turn_checklist.update_attacked_positions = true;
 		debug!("consumed UpdateAttackedPositionsDone");
 	};
 
-	if let Some(_event) = er_moves.iter().last() {
+	if let Some(_event) = er_moves.read().last() {
 		start_turn_checklist.calculated_moves = true;
 		debug!("consumed CalculateAvailableMovesDone");
 
 		ew_attacked.send(UpdateAttackedPositions)
 	};
 
-	if let Some(_event) = er_en_passant.iter().last() {
+	if let Some(_event) = er_en_passant.read().last() {
 		start_turn_checklist.check_en_passant = true;
 		debug!("consumed CheckEnPassantDone");
 
 		ew_moves.send(CalculateAvailableMoves)
 	};
 
-	if let Some(_event) = er_castle.iter().last() {
+	if let Some(_event) = er_castle.read().last() {
 		start_turn_checklist.check_castle_availability = true;
 		debug!("consumed CheckCastleAvailabilityDone");
 

@@ -1,7 +1,7 @@
 use std::f32::consts::TAU;
 
 use bevy::prelude::*;
-use bevy_mod_picking::prelude::*;
+use bevy_mod_picking::backends::raycast::RaycastPickable;
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct ChessCameraPlugin;
@@ -40,7 +40,7 @@ fn spawn_camera(mut commands: Commands) {
 			modifier_pan: Some(KeyCode::ShiftLeft),
 			..default()
 		},
-		RaycastPickCamera::default()
+		RaycastPickable::default() // RaycastPickCamera::default()
 	));
 }
 
@@ -54,7 +54,7 @@ fn check_event_set_camera_target_alpha(
 	mut er_set_target_alpha: EventReader<SetCameraTargetAlpha>,
 	mut query_camera: Query<&mut PanOrbitCamera>
 ) {
-	for event in er_set_target_alpha.into_iter() {
+	for event in er_set_target_alpha.read() {
 		let Ok(mut camera) = query_camera.get_mut(event.entity) else {
 			return;
 		};

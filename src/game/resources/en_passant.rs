@@ -44,7 +44,7 @@ fn handle_event(
 	res_move_history: Res<MoveHistory>
 ) {
 	// Consume CheckEnPassant
-	let Some(_event) = er_do_check.into_iter().last() else {
+	let Some(_event) = er_do_check.read().last() else {
 		error!("not exactly one CheckEnPassant event");
 		return;
 	};
