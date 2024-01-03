@@ -6,10 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.12"
+bevy = { version = "0.12", features = ["mp3"] }
 bevy_panorbit_camera = "0.10"
 bevy_mod_picking = "0.17"
 bevy_mod_raycast = "0.16"
 bevy_eventlistener = "0.6"
 
 itertools = "0.12"
+phf = { version = "0.11", features = ["macros"] }

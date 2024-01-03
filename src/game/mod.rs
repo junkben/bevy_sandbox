@@ -3,6 +3,7 @@
 // improvement in code cleanliness.
 #![allow(clippy::type_complexity)]
 
+mod audio;
 mod board;
 mod camera;
 mod end_game;
@@ -35,17 +36,21 @@ impl Plugin for GamePlugin {
 			.insert_resource(GameSettings::default())
 			// Add resources first
 			.add_plugins(resources::ResourcesPlugin)
-			// Set WindowDescriptor Resource to change title and size
+			// System plugins
 			.add_plugins((
 				bevy_panorbit_camera::PanOrbitCameraPlugin,
-				bevy_mod_picking::DefaultPickingPlugins,
-				turn::TurnManagerPlugin,
+				bevy_mod_picking::DefaultPickingPlugins
+			))
+			// Game-related plugins
+			.add_plugins((
+				audio::GameAudioPlugin,
+				board::BoardPlugin,
 				camera::ChessCameraPlugin,
 				light::ChessLightPlugin,
-				piece::PiecesPlugin,
-				board::BoardPlugin,
 				physics::MotionPlugin,
-				square::SquareSelectPlugin
+				piece::PiecesPlugin,
+				square::SquareSelectPlugin,
+				turn::TurnManagerPlugin
 			))
 			.add_systems(
 				OnEnter(GameState::Game),

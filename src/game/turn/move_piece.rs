@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::TurnState;
 use crate::game::{
+	audio::PlaySoundMoveSelf,
 	physics::TranslationalMotionDone,
 	piece::{MovePieceToBoardPosition, Piece, PieceCaptured},
 	resources::{CastleAvailability, CastleType, MoveHistory},
@@ -83,6 +84,7 @@ fn handle_event_move_selected(
 
 fn wait_for_piece_motion_to_complete(
 	mut er_motion_done: EventReader<TranslationalMotionDone>,
+	mut ew_play_sound: EventWriter<PlaySoundMoveSelf>,
 	mut turn_state: ResMut<NextState<TurnState>>,
 	query_piece: Query<Entity, With<Piece>>
 ) {
@@ -93,6 +95,7 @@ fn wait_for_piece_motion_to_complete(
 
 		// Event entity handshake succeeded, move to next state
 		debug!("moving to {:?}", TurnState::UpdateBoardState);
+		ew_play_sound.send(PlaySoundMoveSelf);
 		turn_state.set(TurnState::UpdateBoardState);
 	}
 }

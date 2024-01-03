@@ -22,6 +22,7 @@ pub struct Square {
 }
 
 impl Square {
+	const ROUGHNESS: f32 = 1.0;
 	const SCALE: Vec3 = Vec3::ONE;
 	const SIZE: f32 = 1.0;
 
@@ -40,6 +41,7 @@ impl Square {
 		let base_color = self.square_color.color(theme);
 		materials.add(StandardMaterial {
 			base_color,
+			perceptual_roughness: Square::ROUGHNESS,
 			..default()
 		})
 	}
