@@ -10,3 +10,4 @@
     - Should it handle all user input?
         - probably
 - Use AttackedPositions to determine Check and Checkmate
+- Abandon as much of current turn management as possible in favor of events
