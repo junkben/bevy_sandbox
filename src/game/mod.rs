@@ -32,8 +32,6 @@ impl Plugin for GamePlugin {
 		app
 			// Set antialiasing to use 4 samples
 			.insert_resource(Msaa::Sample4)
-			// Add in Game Settings
-			.insert_resource(GameSettings::default())
 			// Add resources first
 			.add_plugins(resources::ResourcesPlugin)
 			// System plugins
