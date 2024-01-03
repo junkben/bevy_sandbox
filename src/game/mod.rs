@@ -49,7 +49,8 @@ impl Plugin for GamePlugin {
 				light::ChessLightPlugin,
 				physics::MotionPlugin,
 				piece::PiecesPlugin,
-				square::SquareSelectPlugin,
+				settings::GameSettingsPlugin,
+				square::SquarePlugin,
 				turn::TurnManagerPlugin
 			))
 			.add_systems(
