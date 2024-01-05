@@ -7,5 +7,5 @@
 ## Credits
 
 ### Sound
-- Nathan Gibson - https://nathangibson.myportfolio.com
-- Chess.com
+- [Nathan Gibson](https://nathangibson.myportfolio.com)
+- [Chess.com](https://www.chess.com/)
