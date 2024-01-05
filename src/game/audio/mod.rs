@@ -62,83 +62,83 @@ sound_fx!(GameAudioPlugin {
 		event: PlaySoundCapture,
 		event_read: handle_event_play_sound_capture,
 		pub_fn: play_sound_capture,
-		path: "sounds/capture.mp3"
+		path: "sounds/game/capture.mp3"
 	};
 	{
 		marker: SoundCastle,
 		event: PlaySoundCastle,
 		event_read: handle_event_play_sound_castle,
 		pub_fn: play_sound_castle,
-		path: "sounds/castle.mp3"
+		path: "sounds/game/castle.mp3"
 	};
 	{
 		marker: SoundGameEnd,
 		event: PlaySoundGameEnd,
 		event_read: handle_event_play_sound_game_end,
 		pub_fn: play_sound_game_end,
-		path: "sounds/game-end.mp3"
+		path: "sounds/game/game-end.mp3"
 	};
 	{
 		marker: SoundGameStart,
 		event: PlaySoundGameStart,
 		event_read: handle_event_play_sound_game_start,
 		pub_fn: play_sound_game_start,
-		path: "sounds/game-start.mp3"
+		path: "sounds/game/game-start.mp3"
 	};
 	{
 		marker: SoundIllegalMove,
 		event: PlaySoundIllegalMove,
 		event_read: handle_event_play_sound_illegal,
 		pub_fn: play_sound_illegal,
-		path: "sounds/illegal.mp3"
+		path: "sounds/game/illegal.mp3"
 	};
 	{
 		marker: SoundMoveCheck,
 		event: PlaySoundMoveCheck,
 		event_read: handle_event_play_sound_move_check,
 		pub_fn: play_sound_move_check,
-		path: "sounds/move-check.mp3"
+		path: "sounds/game/move-check.mp3"
 	};
 	{
 		marker: SoundMoveOpponent,
 		event: PlaySoundMoveOpponent,
 		event_read: handle_event_play_sound_move_opponent,
 		pub_fn: play_sound_move_opponent,
-		path: "sounds/move-opponent.mp3"
+		path: "sounds/game/move-opponent.mp3"
 	};
 	{
 		marker: SoundMoveSelf,
 		event: PlaySoundMoveSelf,
 		event_read: handle_event_play_sound_move_self,
 		pub_fn: play_sound_move_self,
-		path: "sounds/move-self.mp3"
+		path: "sounds/game/move-self.mp3"
 	};
 	{
 		marker: SoundNotify,
 		event: PlaySoundNotify,
 		event_read: handle_event_play_sound_notify,
 		pub_fn: play_sound_notify,
-		path: "sounds/notify.mp3"
+		path: "sounds/game/notify.mp3"
 	};
 	{
 		marker: SoundPremove,
 		event: PlaySoundPremove,
 		event_read: handle_event_play_sound_premove,
 		pub_fn: play_sound_premove,
-		path: "sounds/premove.mp3"
+		path: "sounds/game/premove.mp3"
 	};
 	{
 		marker: SoundPromote,
 		event: PlaySoundPromote,
 		event_read: handle_event_play_sound_promote,
 		pub_fn: play_sound_promote,
-		path: "sounds/promote.mp3"
+		path: "sounds/game/promote.mp3"
 	};
 	{
 		marker: SoundTenseconds,
 		event: PlaySoundTenseconds,
 		event_read: handle_event_play_sound_tenseconds,
 		pub_fn: play_sound_tenseconds,
-		path: "sounds/tenseconds.mp3"
+		path: "sounds/game/tenseconds.mp3"
 	}
 });
