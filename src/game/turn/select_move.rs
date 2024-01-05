@@ -3,6 +3,7 @@ use bevy_mod_picking::prelude::*;
 
 use super::{move_piece::MoveSelected, TurnState};
 use crate::game::{
+	audio::PlaySoundSelectGamePiece,
 	piece::{Piece, UserSelectedPiece},
 	position::Position,
 	resources::{ActiveColor, AvailableMoves},
@@ -46,6 +47,7 @@ impl Plugin for SelectMovePlugin {
 fn handle_event_user_select_piece(
 	mut commands: Commands,
 	mut er_user_selected: EventReader<UserSelectedPiece>,
+	mut ew_play_sound: EventWriter<PlaySoundSelectGamePiece>,
 	mut ew_selection_update: EventWriter<UpdateSquareSelection>,
 	res_available_moves: Res<AvailableMoves>,
 	query_piece: Query<Entity, With<Piece>>
@@ -68,6 +70,7 @@ fn handle_event_user_select_piece(
 
 	let positions = moves.iter().map(|m| m.final_position).collect::<Vec<_>>();
 
+	ew_play_sound.send(PlaySoundSelectGamePiece);
 	ew_selection_update.send(UpdateSquareSelection { positions })
 }
 

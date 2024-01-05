@@ -37,7 +37,7 @@ macro_rules! sound_fx {
                 asset_server: Res<AssetServer>
             ) {
                 if let Some(_) = er.read().last() {
-                    debug!("playing {}", stringify!($marker));
+                    info!("playing {}", stringify!($marker));
                     commands.spawn((
                         AudioBundle {
                             source: asset_server.load($path),
@@ -140,5 +140,12 @@ sound_fx!(GameAudioPlugin {
 		event_read: handle_event_play_sound_tenseconds,
 		pub_fn: play_sound_tenseconds,
 		path: "sounds/game/tenseconds.mp3"
-	}
+	};
+    {
+        marker: SoundSelectGamePiece,
+		event: PlaySoundSelectGamePiece,
+		event_read: handle_event_play_sound_select_game_piece,
+		pub_fn: play_sound_select_game_piece,
+		path: "sounds/game/select-game-piece.mp3" 
+    }
 });

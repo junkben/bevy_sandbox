@@ -26,7 +26,7 @@ pub struct TranslationalMotion {
 }
 
 impl TranslationalMotion {
-	const SPEED: f32 = std::f32::consts::PI;
+	const SPEED: f32 = 10.0;
 
 	pub fn new(translation: Vec3) -> TranslationalMotion {
 		TranslationalMotion {
