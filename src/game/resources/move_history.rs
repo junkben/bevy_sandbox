@@ -29,6 +29,8 @@ impl MoveHistory {
 
 	pub fn get(&self, index: usize) -> Option<&MoveInfo> { self.0.get(index) }
 
+	pub fn last(&self) -> Option<&MoveInfo> { self.get(self.len() - 1) }
+
 	pub fn append_move(&mut self, move_info: MoveInfo) {
 		self.0.push(move_info);
 		info!("{}", self)

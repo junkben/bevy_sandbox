@@ -41,6 +41,7 @@ fn handle_event(
 		return;
 	};
 
+	info!("Determining attacked positions...");
 	let attacked_positions = determine_attacked_positions(
 		res_available_moves.as_ref(),
 		res_active_color.as_ref()
@@ -65,7 +66,7 @@ fn determine_attacked_positions(
 		}
 
 		// If the move_type is not an attack, continue looking
-		if !m.move_type.is_attack() {
+		if !m.is_attack() {
 			continue;
 		}
 

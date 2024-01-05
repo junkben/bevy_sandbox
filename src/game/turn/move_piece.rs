@@ -2,9 +2,9 @@ use bevy::prelude::*;
 
 use super::TurnState;
 use crate::game::{
-	audio::PlaySoundMoveSelf,
+	audio::*,
 	physics::TranslationalMotionDone,
-	piece::{MovePieceToBoardPosition, Piece, PieceCaptured},
+	piece::{MovePieceToBoardPosition, PieceCaptured},
 	resources::{CastleAvailability, CastleType, MoveHistory},
 	MoveInfo, MoveType
 };
@@ -13,14 +13,19 @@ pub struct PieceMovementPlugin;
 
 impl Plugin for PieceMovementPlugin {
 	fn build(&self, app: &mut App) {
-		app.add_event::<MoveSelected>().add_systems(
-			Update,
-			(
-				wait_for_piece_motion_to_complete
-					.run_if(in_state(TurnState::MovePiece)),
-				handle_event_move_selected.run_if(on_event::<MoveSelected>())
-			)
-		);
+		app.add_event::<PlaySoundOnMoveComplete>()
+			.add_event::<MoveSelected>()
+			.add_systems(
+				Update,
+				(
+					wait_for_piece_motion_to_complete
+						.run_if(in_state(TurnState::MovePiece)),
+					handle_event_move_selected
+						.run_if(on_event::<MoveSelected>()),
+					handle_event_play_sound_on_move_complete
+						.run_if(on_event::<PlaySoundOnMoveComplete>())
+				)
+			);
 	}
 }
 
@@ -82,20 +87,79 @@ fn handle_event_move_selected(
 	}
 }
 
+#[derive(Event)]
+pub struct PlaySoundOnMoveComplete;
+
 fn wait_for_piece_motion_to_complete(
 	mut er_motion_done: EventReader<TranslationalMotionDone>,
-	mut ew_play_sound: EventWriter<PlaySoundMoveSelf>,
+	mut ew_play_sound: EventWriter<PlaySoundOnMoveComplete>,
 	mut turn_state: ResMut<NextState<TurnState>>,
-	query_piece: Query<Entity, With<Piece>>
+	move_history: Res<MoveHistory>
 ) {
-	for event in er_motion_done.read() {
-		let Ok(_entity) = query_piece.get(event.entity) else {
-			return;
-		};
+	let Some(event) = er_motion_done.read().last() else {
+		return;
+	};
 
-		// Event entity handshake succeeded, move to next state
-		debug!("moving to {:?}", TurnState::UpdateBoardState);
-		ew_play_sound.send(PlaySoundMoveSelf);
-		turn_state.set(TurnState::UpdateBoardState);
+	// Do handshake
+	let Some(last_move) = move_history.last() else {
+		error!("no last move entity");
+		return;
+	};
+
+	if last_move.entity != event.entity {
+		error!("translational motion entity does not match last move entity");
+		return;
+	}
+
+	ew_play_sound.send(PlaySoundOnMoveComplete);
+
+	// Event entity handshake succeeded, move to next state
+	debug!("moving to {:?}", TurnState::UpdateBoardState);
+	turn_state.set(TurnState::UpdateBoardState);
+}
+
+fn handle_event_play_sound_on_move_complete(
+	mut er_play_sound: EventReader<PlaySoundOnMoveComplete>,
+	mut ew_move_self: EventWriter<PlaySoundMoveSelf>,
+	mut ew_move_oppo: EventWriter<PlaySoundMoveOpponent>,
+	mut ew_move_check: EventWriter<PlaySoundMoveCheck>,
+	mut ew_capture: EventWriter<PlaySoundCapture>,
+	mut ew_castle: EventWriter<PlaySoundCastle>,
+	mut ew_promote: EventWriter<PlaySoundPromote>,
+	move_history: Res<MoveHistory>
+) {
+	let Some(_) = er_play_sound.read().last() else {
+		return;
+	};
+
+	let Some(last_move) = move_history.last() else {
+		error!("no move to play sound for");
+		return;
+	};
+
+	if last_move.is_check {
+		ew_move_check.send(PlaySoundMoveCheck);
+		return;
+	}
+
+	if let Some(_) = last_move.promoted_to {
+		ew_promote.send(PlaySoundPromote);
+		return;
+	}
+
+	if last_move.is_capture() {
+		ew_capture.send(PlaySoundCapture);
+		return;
+	}
+
+	if last_move.is_castle() {
+		ew_castle.send(PlaySoundCastle);
+		return;
+	}
+
+	if last_move.piece.piece_color().is_white() {
+		ew_move_self.send(PlaySoundMoveSelf);
+	} else {
+		ew_move_oppo.send(PlaySoundMoveOpponent);
 	}
 }

@@ -19,4 +19,6 @@ impl PieceColor {
 			Black => theme.data().piece_black
 		}
 	}
+
+	pub fn is_white(&self) -> bool { self == &PieceColor::White }
 }

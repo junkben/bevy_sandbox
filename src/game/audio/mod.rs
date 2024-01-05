@@ -1,7 +1,15 @@
 use bevy::prelude::*;
 
 macro_rules! sound_fx {
-    ($plugin_name:ident: $($marker:ident, $event:ident, $event_read:ident, $path:expr);*) => (
+    ($plugin_name:ident {
+        $({
+            marker: $marker:ident,
+            event: $event:ident,
+            event_read: $event_read:ident,
+            pub_fn: $pub_fn:ident,
+            path: $path:expr
+        });*
+    }) => (
         pub struct $plugin_name;
 
         impl Plugin for $plugin_name {
@@ -48,17 +56,89 @@ macro_rules! sound_fx {
     )
 }
 
-sound_fx!(GameAudioPlugin:
-	SoundCapture, PlaySoundCapture, play_sound_capture, "sounds/capture.mp3";
-	SoundCastle, PlaySoundCastle, play_sound_castle, "sounds/castle.mp3";
-	SoundGameEnd, PlaySoundGameEnd, play_sound_game_end, "sounds/game-end.mp3";
-	SoundGameStart, PlaySoundGameStart, play_sound_game_start, "sounds/game-start.mp3";
-	SoundIllegalMove, PlaySoundIllegalMove, play_sound_illegal, "sounds/illegal.mp3";
-	SoundMoveCheck, PlaySoundMoveCheck, play_sound_move_check, "sounds/move-check.mp3";
-	SoundMoveOpponent, PlaySoundMoveOpponent, play_sound_move_opponent, "sounds/move-opponent.mp3";
-	SoundMoveSelf, PlaySoundMoveSelf, play_sound_move_self, "sounds/move-self.mp3";
-	SoundNotify, PlaySoundNotify, play_sound_notify, "sounds/notify.mp3";
-	SoundPremove, PlaySoundPremove, play_sound_premove, "sounds/premove.mp3";
-	SoundPromote, PlaySoundPromote, play_sound_promote, "sounds/promote.mp3";
-	SoundTenseconds, PlaySoundTenseconds, play_sound_tenseconds, "sounds/tenseconds.mp3"
-);
+sound_fx!(GameAudioPlugin {
+	{
+		marker: SoundCapture,
+		event: PlaySoundCapture,
+		event_read: handle_event_play_sound_capture,
+		pub_fn: play_sound_capture,
+		path: "sounds/capture.mp3"
+	};
+	{
+		marker: SoundCastle,
+		event: PlaySoundCastle,
+		event_read: handle_event_play_sound_castle,
+		pub_fn: play_sound_castle,
+		path: "sounds/castle.mp3"
+	};
+	{
+		marker: SoundGameEnd,
+		event: PlaySoundGameEnd,
+		event_read: handle_event_play_sound_game_end,
+		pub_fn: play_sound_game_end,
+		path: "sounds/game-end.mp3"
+	};
+	{
+		marker: SoundGameStart,
+		event: PlaySoundGameStart,
+		event_read: handle_event_play_sound_game_start,
+		pub_fn: play_sound_game_start,
+		path: "sounds/game-start.mp3"
+	};
+	{
+		marker: SoundIllegalMove,
+		event: PlaySoundIllegalMove,
+		event_read: handle_event_play_sound_illegal,
+		pub_fn: play_sound_illegal,
+		path: "sounds/illegal.mp3"
+	};
+	{
+		marker: SoundMoveCheck,
+		event: PlaySoundMoveCheck,
+		event_read: handle_event_play_sound_move_check,
+		pub_fn: play_sound_move_check,
+		path: "sounds/move-check.mp3"
+	};
+	{
+		marker: SoundMoveOpponent,
+		event: PlaySoundMoveOpponent,
+		event_read: handle_event_play_sound_move_opponent,
+		pub_fn: play_sound_move_opponent,
+		path: "sounds/move-opponent.mp3"
+	};
+	{
+		marker: SoundMoveSelf,
+		event: PlaySoundMoveSelf,
+		event_read: handle_event_play_sound_move_self,
+		pub_fn: play_sound_move_self,
+		path: "sounds/move-self.mp3"
+	};
+	{
+		marker: SoundNotify,
+		event: PlaySoundNotify,
+		event_read: handle_event_play_sound_notify,
+		pub_fn: play_sound_notify,
+		path: "sounds/notify.mp3"
+	};
+	{
+		marker: SoundPremove,
+		event: PlaySoundPremove,
+		event_read: handle_event_play_sound_premove,
+		pub_fn: play_sound_premove,
+		path: "sounds/premove.mp3"
+	};
+	{
+		marker: SoundPromote,
+		event: PlaySoundPromote,
+		event_read: handle_event_play_sound_promote,
+		pub_fn: play_sound_promote,
+		path: "sounds/promote.mp3"
+	};
+	{
+		marker: SoundTenseconds,
+		event: PlaySoundTenseconds,
+		event_read: handle_event_play_sound_tenseconds,
+		pub_fn: play_sound_tenseconds,
+		path: "sounds/tenseconds.mp3"
+	}
+});

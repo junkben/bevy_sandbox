@@ -35,6 +35,7 @@ fn handle_event(
 		return;
 	};
 
+	info!("Checking castle availability...");
 	let castle_availability = determine_castle_availability(query_piece);
 
 	debug!(?castle_availability);

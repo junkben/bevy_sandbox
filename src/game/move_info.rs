@@ -80,15 +80,32 @@ impl std::fmt::Display for MoveInfo {
 	}
 }
 
-impl MoveType {
+impl MoveInfo {
 	pub fn is_attack(&self) -> bool {
 		use MoveType::*;
-		match self {
+		match self.move_type {
 			Move => true,
 			FirstMove => false,
 			Capture { .. } => true,
 			CaptureEnPassant { .. } => true,
 			Castle(_) => false
+		}
+	}
+
+	pub fn is_capture(&self) -> bool {
+		use MoveType::*;
+		match self.move_type {
+			Capture { .. } => true,
+			CaptureEnPassant { .. } => true,
+			_ => false
+		}
+	}
+
+	pub fn is_castle(&self) -> bool {
+		use MoveType::*;
+		match self.move_type {
+			Castle(_) => true,
+			_ => false
 		}
 	}
 }

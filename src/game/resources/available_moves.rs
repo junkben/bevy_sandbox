@@ -48,6 +48,8 @@ fn handle_event(
 		return;
 	};
 
+	info!("Calculating available moves...");
+
 	let available_moves = calculate_available_moves(
 		res_castle_availability.as_ref(),
 		res_en_passant_tracker.as_ref(),

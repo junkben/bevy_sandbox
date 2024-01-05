@@ -11,7 +11,9 @@ pub use movement::{
 };
 pub use piece_type::PieceType;
 pub use selection::{PieceSelectionBundle, UserSelectedPiece};
-pub use spawn::{PieceCaptured, SpawnPiece, INITIAL_PIECE_POSITIONS};
+pub use spawn::{
+	PieceCaptured, SpawnPieces, SpawnPiecesDone, INITIAL_PIECE_POSITIONS
+};
 
 use self::{
 	movement::PieceMovementPlugin, selection::PieceSelectPlugin,

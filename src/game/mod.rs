@@ -16,11 +16,13 @@ mod position;
 pub mod resources;
 mod settings;
 mod square;
+mod start;
 mod turn;
 
 use bevy::prelude::*;
 pub use move_info::{MoveInfo, MoveType};
 pub use settings::GameSettings;
+pub use start::GameStart;
 
 use self::turn::TurnState;
 use crate::GameState;
@@ -49,6 +51,7 @@ impl Plugin for GamePlugin {
 				piece::PiecesPlugin,
 				settings::GameSettingsPlugin,
 				square::SquarePlugin,
+				start::GameStartPlugin,
 				turn::TurnManagerPlugin
 			))
 			.add_systems(
@@ -58,6 +61,6 @@ impl Plugin for GamePlugin {
 	}
 }
 
-fn entering_game_state(mut turn_state: ResMut<NextState<TurnState>>) {
-	turn_state.set(TurnState::GameStart);
+fn entering_game_state(mut ew_game_start: EventWriter<GameStart>) {
+	ew_game_start.send(GameStart);
 }

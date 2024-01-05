@@ -49,6 +49,8 @@ fn handle_event(
 		return;
 	};
 
+	info!("Determining en_passant_state...");
+
 	let en_passant_state =
 		determine_en_passant_state(res_move_history.as_ref());
 

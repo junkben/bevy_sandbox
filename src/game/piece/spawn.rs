@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;
 
@@ -10,12 +12,13 @@ use crate::game::{
 pub struct SpawnPiecePlugin;
 impl Plugin for SpawnPiecePlugin {
 	fn build(&self, app: &mut App) {
-		app.add_event::<SpawnPiece>()
+		app.add_event::<SpawnPieces>()
+			.add_event::<SpawnPiecesDone>()
 			.add_event::<PieceCaptured>()
 			.add_systems(
 				Update,
 				(
-					handle_event_spawn_piece.run_if(on_event::<SpawnPiece>()),
+					handle_event_spawn_pieces.run_if(on_event::<SpawnPieces>()),
 					handle_event_piece_captured
 						.run_if(on_event::<PieceCaptured>())
 				)
@@ -57,27 +60,32 @@ impl PieceBundle {
 }
 
 #[derive(Event)]
-pub struct SpawnPiece {
-	pub piece:    Piece,
-	pub position: Position
-}
+pub struct SpawnPieces(pub HashMap<Position, Piece>);
 
-fn handle_event_spawn_piece(
+#[derive(Event)]
+pub struct SpawnPiecesDone;
+
+fn handle_event_spawn_pieces(
 	mut commands: Commands,
-	mut er_spawn_piece: EventReader<SpawnPiece>,
+	mut er_spawn_piece: EventReader<SpawnPieces>,
+	mut ew_done: EventWriter<SpawnPiecesDone>,
 	asset_server: Res<AssetServer>,
 	mut materials: ResMut<Assets<StandardMaterial>>,
 	theme: Res<Theme>
 ) {
-	for spawn_piece_event in er_spawn_piece.read() {
-		let piece = spawn_piece_event.piece;
-		let position = spawn_piece_event.position;
+	if let Some(event) = er_spawn_piece.read().last() {
+		for (position, piece) in &event.0 {
+			let pbr_bundle = piece.pbr_bundle(
+				&asset_server,
+				&mut materials,
+				&position,
+				&theme
+			);
 
-		let pbr_bundle =
-			piece.pbr_bundle(&asset_server, &mut materials, &position, &theme);
+			commands.spawn(PieceBundle::new(pbr_bundle, *position, *piece));
+		}
 
-		let piece_bundle = PieceBundle::new(pbr_bundle, position, piece);
-		commands.spawn(piece_bundle);
+		ew_done.send(SpawnPiecesDone)
 	}
 }
 
@@ -95,37 +103,37 @@ fn handle_event_piece_captured(
 	}
 }
 
-pub const INITIAL_PIECE_POSITIONS: [(Position, Piece); 32] = [
-	(Position::A8, Piece::BLACK_ROOK),
-	(Position::B8, Piece::BLACK_KNIGHT),
-	(Position::C8, Piece::BLACK_BISHOP),
-	(Position::D8, Piece::BLACK_QUEEN),
-	(Position::E8, Piece::BLACK_KING),
-	(Position::F8, Piece::BLACK_BISHOP),
-	(Position::G8, Piece::BLACK_KNIGHT),
-	(Position::H8, Piece::BLACK_ROOK),
-	(Position::A7, Piece::BLACK_PAWN),
-	(Position::B7, Piece::BLACK_PAWN),
-	(Position::C7, Piece::BLACK_PAWN),
-	(Position::D7, Piece::BLACK_PAWN),
-	(Position::E7, Piece::BLACK_PAWN),
-	(Position::F7, Piece::BLACK_PAWN),
-	(Position::G7, Piece::BLACK_PAWN),
-	(Position::H7, Piece::BLACK_PAWN),
-	(Position::A2, Piece::WHITE_PAWN),
-	(Position::B2, Piece::WHITE_PAWN),
-	(Position::C2, Piece::WHITE_PAWN),
-	(Position::D2, Piece::WHITE_PAWN),
-	(Position::E2, Piece::WHITE_PAWN),
-	(Position::F2, Piece::WHITE_PAWN),
-	(Position::G2, Piece::WHITE_PAWN),
-	(Position::H2, Piece::WHITE_PAWN),
-	(Position::A1, Piece::WHITE_ROOK),
-	(Position::B1, Piece::WHITE_KNIGHT),
-	(Position::C1, Piece::WHITE_BISHOP),
-	(Position::D1, Piece::WHITE_QUEEN),
-	(Position::E1, Piece::WHITE_KING),
-	(Position::F1, Piece::WHITE_BISHOP),
-	(Position::G1, Piece::WHITE_KNIGHT),
-	(Position::H1, Piece::WHITE_ROOK)
-];
+pub const INITIAL_PIECE_POSITIONS: phf::Map<&'static str, Piece> = phf::phf_map! {
+	"A8" => Piece::BLACK_ROOK,
+	"B8" => Piece::BLACK_KNIGHT,
+	"C8" => Piece::BLACK_BISHOP,
+	"D8" => Piece::BLACK_QUEEN,
+	"E8" => Piece::BLACK_KING,
+	"F8" => Piece::BLACK_BISHOP,
+	"G8" => Piece::BLACK_KNIGHT,
+	"H8" => Piece::BLACK_ROOK,
+	"A7" => Piece::BLACK_PAWN,
+	"B7" => Piece::BLACK_PAWN,
+	"C7" => Piece::BLACK_PAWN,
+	"D7" => Piece::BLACK_PAWN,
+	"E7" => Piece::BLACK_PAWN,
+	"F7" => Piece::BLACK_PAWN,
+	"G7" => Piece::BLACK_PAWN,
+	"H7" => Piece::BLACK_PAWN,
+	"A2" => Piece::WHITE_PAWN,
+	"B2" => Piece::WHITE_PAWN,
+	"C2" => Piece::WHITE_PAWN,
+	"D2" => Piece::WHITE_PAWN,
+	"E2" => Piece::WHITE_PAWN,
+	"F2" => Piece::WHITE_PAWN,
+	"G2" => Piece::WHITE_PAWN,
+	"H2" => Piece::WHITE_PAWN,
+	"A1" => Piece::WHITE_ROOK,
+	"B1" => Piece::WHITE_KNIGHT,
+	"C1" => Piece::WHITE_BISHOP,
+	"D1" => Piece::WHITE_QUEEN,
+	"E1" => Piece::WHITE_KING,
+	"F1" => Piece::WHITE_BISHOP,
+	"G1" => Piece::WHITE_KNIGHT,
+	"H1" => Piece::WHITE_ROOK
+};
