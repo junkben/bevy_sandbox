@@ -8,7 +8,7 @@ macro_rules! sound_fx {
             event_read: $event_read:ident,
             pub_fn: $pub_fn:ident,
             path: $path:expr
-        });*
+        }),*
     }) => (
         pub struct $plugin_name;
 
@@ -56,6 +56,23 @@ macro_rules! sound_fx {
     )
 }
 
+sound_fx!(MenuAudioPlugin {
+	{
+		marker: SoundButtonHovered,
+		event: PlaySoundButtonHovered,
+		event_read: handle_event_play_sound_button_hovered,
+		pub_fn: play_sound_button_hovered,
+		path: "sounds/ui/button-hover.mp3"
+	},
+	{
+		marker: SoundButtonPressed,
+		event: PlaySoundButtonPressed,
+		event_read: handle_event_play_sound_button_pressed,
+		pub_fn: play_sound_button_pressed,
+		path: "sounds/ui/button-press.mp3"
+	}
+});
+
 sound_fx!(GameAudioPlugin {
 	{
 		marker: SoundCapture,
@@ -63,89 +80,89 @@ sound_fx!(GameAudioPlugin {
 		event_read: handle_event_play_sound_capture,
 		pub_fn: play_sound_capture,
 		path: "sounds/game/capture.mp3"
-	};
+	},
 	{
 		marker: SoundCastle,
 		event: PlaySoundCastle,
 		event_read: handle_event_play_sound_castle,
 		pub_fn: play_sound_castle,
 		path: "sounds/game/castle.mp3"
-	};
+	},
 	{
 		marker: SoundGameEnd,
 		event: PlaySoundGameEnd,
 		event_read: handle_event_play_sound_game_end,
 		pub_fn: play_sound_game_end,
 		path: "sounds/game/game-end.mp3"
-	};
+	},
 	{
 		marker: SoundGameStart,
 		event: PlaySoundGameStart,
 		event_read: handle_event_play_sound_game_start,
 		pub_fn: play_sound_game_start,
 		path: "sounds/game/game-start.mp3"
-	};
+	},
 	{
 		marker: SoundIllegalMove,
 		event: PlaySoundIllegalMove,
 		event_read: handle_event_play_sound_illegal,
 		pub_fn: play_sound_illegal,
 		path: "sounds/game/illegal.mp3"
-	};
+	},
 	{
 		marker: SoundMoveCheck,
 		event: PlaySoundMoveCheck,
 		event_read: handle_event_play_sound_move_check,
 		pub_fn: play_sound_move_check,
 		path: "sounds/game/move-check.mp3"
-	};
+	},
 	{
 		marker: SoundMoveOpponent,
 		event: PlaySoundMoveOpponent,
 		event_read: handle_event_play_sound_move_opponent,
 		pub_fn: play_sound_move_opponent,
 		path: "sounds/game/move-opponent.mp3"
-	};
+	},
 	{
 		marker: SoundMoveSelf,
 		event: PlaySoundMoveSelf,
 		event_read: handle_event_play_sound_move_self,
 		pub_fn: play_sound_move_self,
 		path: "sounds/game/move-self.mp3"
-	};
+	},
 	{
 		marker: SoundNotify,
 		event: PlaySoundNotify,
 		event_read: handle_event_play_sound_notify,
 		pub_fn: play_sound_notify,
 		path: "sounds/game/notify.mp3"
-	};
+	},
 	{
 		marker: SoundPremove,
 		event: PlaySoundPremove,
 		event_read: handle_event_play_sound_premove,
 		pub_fn: play_sound_premove,
 		path: "sounds/game/premove.mp3"
-	};
+	},
 	{
 		marker: SoundPromote,
 		event: PlaySoundPromote,
 		event_read: handle_event_play_sound_promote,
 		pub_fn: play_sound_promote,
 		path: "sounds/game/promote.mp3"
-	};
+	},
 	{
 		marker: SoundTenseconds,
 		event: PlaySoundTenseconds,
 		event_read: handle_event_play_sound_tenseconds,
 		pub_fn: play_sound_tenseconds,
 		path: "sounds/game/tenseconds.mp3"
-	};
-    {
-        marker: SoundSelectGamePiece,
+	},
+	{
+		marker: SoundSelectGamePiece,
 		event: PlaySoundSelectGamePiece,
 		event_read: handle_event_play_sound_select_game_piece,
 		pub_fn: play_sound_select_game_piece,
-		path: "sounds/game/select-game-piece.mp3" 
-    }
+		path: "sounds/game/select-game-piece.mp3"
+	}
 });

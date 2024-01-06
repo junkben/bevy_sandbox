@@ -3,7 +3,6 @@
 // improvement in code cleanliness.
 #![allow(clippy::type_complexity)]
 
-mod audio;
 mod board;
 mod camera;
 mod end_game;
@@ -43,7 +42,6 @@ impl Plugin for GamePlugin {
 			))
 			// Game-related plugins
 			.add_plugins((
-				audio::GameAudioPlugin,
 				board::BoardPlugin,
 				camera::ChessCameraPlugin,
 				light::ChessLightPlugin,

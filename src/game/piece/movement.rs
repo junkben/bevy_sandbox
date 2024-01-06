@@ -172,7 +172,6 @@ impl PieceMovementBehavior {
 	}
 }
 
-// TODO: Castling behavior for king and rook
 enum Direction {
 	N,
 	NNE,

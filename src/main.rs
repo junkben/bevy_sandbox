@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use menu::MenuState;
 
+mod audio;
 mod game;
 mod log;
 mod menu;
@@ -21,7 +22,13 @@ fn main() {
 				.set(log::log_plugin())
 		)
 		// Adds the plugins for each state
-		.add_plugins((splash::SplashPlugin, menu::MenuPlugin, game::GamePlugin))
+		.add_plugins((
+			splash::SplashPlugin,
+			menu::MenuPlugin,
+			game::GamePlugin,
+			audio::GameAudioPlugin,
+			audio::MenuAudioPlugin
+		))
 		.add_systems(
 			Update,
 			(

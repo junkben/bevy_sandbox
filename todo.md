@@ -2,6 +2,7 @@
     - Make theming for menu separate from the game board theming
 - Menus
     - Add menu for changing gameplay settings
+    - Implement sounds for ui buttons
 - Replay Mode
 - Rename resources
 - Abstract resources and queries
@@ -11,3 +12,5 @@
         - probably
 - Use AttackedPositions to determine Check and Checkmate
 - Abandon as much of current turn management as possible in favor of events
+- BUG: Right-click seems to work where left-clicks do
+- BUG: Main menu buttons make redundant

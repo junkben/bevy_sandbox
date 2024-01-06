@@ -3,11 +3,13 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::game::{
+use crate::{
 	audio::PlaySoundGameStart,
-	piece::{SpawnPieces, SpawnPiecesDone, INITIAL_PIECE_POSITIONS},
-	position::Position,
-	resources::GameMode
+	game::{
+		piece::{SpawnPieces, SpawnPiecesDone, INITIAL_PIECE_POSITIONS},
+		position::Position,
+		resources::GameMode
+	}
 };
 
 pub struct GameStartPlugin;

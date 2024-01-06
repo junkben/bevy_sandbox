@@ -1,12 +1,14 @@
 use bevy::prelude::*;
 
 use super::TurnState;
-use crate::game::{
+use crate::{
 	audio::*,
-	physics::TranslationalMotionDone,
-	piece::{MovePieceToBoardPosition, PieceCaptured},
-	resources::{CastleAvailability, CastleType, MoveHistory},
-	MoveInfo, MoveType
+	game::{
+		physics::TranslationalMotionDone,
+		piece::{MovePieceToBoardPosition, PieceCaptured},
+		resources::{CastleAvailability, CastleType, MoveHistory},
+		MoveInfo, MoveType
+	}
 };
 
 pub struct PieceMovementPlugin;

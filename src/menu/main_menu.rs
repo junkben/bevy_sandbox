@@ -1,6 +1,9 @@
 use bevy::{app::AppExit, prelude::*};
+use bevy_eventlistener::{callbacks::ListenerInput, event_listener::On};
+use bevy_mod_picking::events::{Click, Over, Pointer};
 
 use super::*;
+use crate::audio::{PlaySoundButtonHovered, PlaySoundButtonPressed};
 
 // This plugin manages the menu, with 4 different screens:
 // - a main menu with "New Game", "Settings", "Quit"
@@ -10,7 +13,8 @@ pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
 	fn build(&self, app: &mut App) {
-		app
+		app.add_event::<ButtonPress>()
+			.add_event::<ButtonHover>()
 			// Systems to handle the main menu screen
 			.add_systems(OnEnter(MenuState::Main), main_menu_setup)
 			.add_systems(
@@ -19,7 +23,12 @@ impl Plugin for MainMenuPlugin {
 			)
 			.add_systems(
 				Update,
-				main_menu_action.run_if(in_state(MenuState::Main))
+				(
+					handle_event_button_pressed
+						.run_if(on_event::<ButtonPress>()),
+					handle_event_button_hovered
+						.run_if(on_event::<ButtonHover>())
+				)
 			);
 	}
 }
@@ -87,10 +96,17 @@ fn spawn_main_menu_button(
 		..default()
 	};
 
-	parent.spawn((button, action)).with_children(|parent| {
-		parent.spawn(icon);
-		parent.spawn(text);
-	});
+	parent
+		.spawn((
+			button,
+			action,
+			On::<Pointer<Over>>::send_event::<ButtonHover>(),
+			On::<Pointer<Click>>::send_event::<ButtonPress>()
+		))
+		.with_children(|parent| {
+			parent.spawn(icon);
+			parent.spawn(text);
+		});
 }
 
 fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -167,29 +183,74 @@ fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 		});
 }
 
-fn main_menu_action(
-	query_button: Query<
-		(&Interaction, &MenuButtonAction),
-		(Changed<Interaction>, With<Button>)
-	>,
+#[derive(Event)]
+pub struct ButtonPress {
+	entity: Entity
+}
+
+impl From<ListenerInput<Pointer<Click>>> for ButtonPress {
+	fn from(event: ListenerInput<Pointer<Click>>) -> Self {
+		ButtonPress {
+			entity: event.target
+		}
+	}
+}
+
+fn handle_event_button_pressed(
+	mut er: EventReader<ButtonPress>,
+	query_button: Query<(Entity, &MenuButtonAction)>,
 	mut ew_app_exit: EventWriter<AppExit>,
+	mut ew_play_sound_pressed: EventWriter<PlaySoundButtonPressed>,
 	mut menu_state: ResMut<NextState<MenuState>>,
 	mut game_state: ResMut<NextState<GameState>>
 ) {
-	for (interaction, menu_button_action) in &query_button {
-		if *interaction == Interaction::Pressed {
-			use MenuButtonAction::*;
-			match menu_button_action {
-				Resume => {},
-				NewGame => {
-					game_state.set(GameState::Game);
-					menu_state.set(MenuState::Disabled);
-				},
-				Settings => {
-					menu_state.set(MenuState::Settings);
-				},
-				Quit => ew_app_exit.send(AppExit)
-			}
+	let Some(event) = er.read().last() else {
+		return;
+	};
+
+	ew_play_sound_pressed.send(PlaySoundButtonPressed);
+
+	let Some((_, action)) =
+		query_button.iter().find(|&(e, _)| e == event.entity)
+	else {
+		return;
+	};
+
+	use MenuButtonAction::*;
+	match action {
+		Resume => {},
+		NewGame => {
+			game_state.set(GameState::Game);
+			menu_state.set(MenuState::Disabled);
+		},
+		Settings => {
+			menu_state.set(MenuState::Settings);
+		},
+		Quit => ew_app_exit.send(AppExit)
+	}
+}
+
+#[derive(Event)]
+pub struct ButtonHover {
+	entity: Entity
+}
+
+impl From<ListenerInput<Pointer<Over>>> for ButtonHover {
+	fn from(event: ListenerInput<Pointer<Over>>) -> Self {
+		ButtonHover {
+			entity: event.target
 		}
 	}
+}
+
+fn handle_event_button_hovered(
+	mut er: EventReader<ButtonHover>,
+	// query_button: Query<Entity>,
+	mut ew_play_sound: EventWriter<PlaySoundButtonHovered>
+) {
+	let Some(_event) = er.read().last() else {
+		return;
+	};
+
+	ew_play_sound.send(PlaySoundButtonHovered);
 }
