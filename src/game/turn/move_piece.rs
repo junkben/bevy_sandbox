@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 
 use super::TurnState;
@@ -5,7 +7,8 @@ use crate::{
 	audio::*,
 	game::{
 		physics::TranslationalMotionDone,
-		piece::{MovePieceToBoardPosition, PieceCaptured},
+		piece::{MovePieceToBoardPosition, Piece, PieceCaptured, SpawnPieces},
+		position::Position,
 		resources::{CastleAvailability, CastleType, MoveHistory},
 		MoveInfo, MoveType
 	}
@@ -17,6 +20,7 @@ impl Plugin for PieceMovementPlugin {
 	fn build(&self, app: &mut App) {
 		app.add_event::<PlaySoundOnMoveComplete>()
 			.add_event::<MoveSelected>()
+			.add_event::<ChangePiece>()
 			.add_systems(
 				Update,
 				(
@@ -25,7 +29,8 @@ impl Plugin for PieceMovementPlugin {
 					handle_event_move_selected
 						.run_if(on_event::<MoveSelected>()),
 					handle_event_play_sound_on_move_complete
-						.run_if(on_event::<PlaySoundOnMoveComplete>())
+						.run_if(on_event::<PlaySoundOnMoveComplete>()),
+					handle_event_change_piece.run_if(on_event::<ChangePiece>())
 				)
 			);
 	}
@@ -48,14 +53,14 @@ fn handle_event_move_selected(
 		return;
 	};
 
+	// Add the move to the MoveHistory resource
+	move_history.append_move(event.move_info);
+
 	// Send the event to physically move the piece to the new board position
 	ew_piece_move.send(MovePieceToBoardPosition {
 		entity:      event.move_info.entity,
 		destination: event.move_info.final_position
 	});
-
-	// Add the move to the MoveHistory resource
-	move_history.append_move(event.move_info);
 
 	// Conditionally do some other stuff
 	use MoveType::*;
@@ -95,6 +100,7 @@ pub struct PlaySoundOnMoveComplete;
 fn wait_for_piece_motion_to_complete(
 	mut er_motion_done: EventReader<TranslationalMotionDone>,
 	mut ew_play_sound: EventWriter<PlaySoundOnMoveComplete>,
+	mut ew_change_piece: EventWriter<ChangePiece>,
 	mut turn_state: ResMut<NextState<TurnState>>,
 	move_history: Res<MoveHistory>
 ) {
@@ -111,6 +117,15 @@ fn wait_for_piece_motion_to_complete(
 	if last_move.entity != event.entity {
 		error!("translational motion entity does not match last move entity");
 		return;
+	}
+
+	// Handle promotion piece change now if necessary
+	if let Some(piece) = last_move.promoted_to {
+		ew_change_piece.send(ChangePiece {
+			from: last_move.entity,
+			to:   piece,
+			at:   last_move.final_position
+		})
 	}
 
 	ew_play_sound.send(PlaySoundOnMoveComplete);
@@ -164,4 +179,24 @@ fn handle_event_play_sound_on_move_complete(
 	} else {
 		ew_move_oppo.send(PlaySoundMoveOpponent);
 	}
+}
+
+#[derive(Event)]
+pub struct ChangePiece {
+	from: Entity,
+	to:   Piece,
+	at:   Position
+}
+
+fn handle_event_change_piece(
+	mut commands: Commands,
+	mut er_change_piece: EventReader<ChangePiece>,
+	mut ew_spawn_pieces: EventWriter<SpawnPieces>
+) {
+	let Some(event) = er_change_piece.read().last() else {
+		return;
+	};
+
+	commands.entity(event.from).despawn_recursive();
+	ew_spawn_pieces.send(SpawnPieces(HashMap::from([(event.at, event.to)])));
 }

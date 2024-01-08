@@ -12,5 +12,6 @@
         - probably
 - Use AttackedPositions to determine Check and Checkmate
 - Abandon as much of current turn management as possible in favor of events
+- Implement promotion to other pieces besides queens
 - BUG: Right-click seems to work where left-clicks do
 - BUG: Main menu buttons make redundant

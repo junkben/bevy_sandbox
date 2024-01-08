@@ -231,16 +231,10 @@ fn handle_event_button_pressed(
 }
 
 #[derive(Event)]
-pub struct ButtonHover {
-	entity: Entity
-}
+pub struct ButtonHover;
 
 impl From<ListenerInput<Pointer<Over>>> for ButtonHover {
-	fn from(event: ListenerInput<Pointer<Over>>) -> Self {
-		ButtonHover {
-			entity: event.target
-		}
-	}
+	fn from(_event: ListenerInput<Pointer<Over>>) -> Self { ButtonHover }
 }
 
 fn handle_event_button_hovered(

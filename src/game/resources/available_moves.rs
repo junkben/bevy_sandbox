@@ -14,6 +14,9 @@ use crate::game::{
 	MoveType
 };
 
+const BLACK_PAWN_PROMOTION_RANK: Rank = Rank::ONE;
+const WHITE_PAWN_PROMOTION_RANK: Rank = Rank::EIGHT;
+
 pub struct AvailableMovesPlugin;
 impl Plugin for AvailableMovesPlugin {
 	fn build(&self, app: &mut App) {
@@ -266,144 +269,115 @@ fn determine_move(
 	en_passant_tracker: &EnPassantState,
 	square_state: &SquareState
 ) -> Option<MoveInfo> {
-	if special_move == &MovementType::CastleKingside
-		|| special_move == &MovementType::CastleQueenside
-	{
-		return determine_castle_move(
-			entity,
-			initial_position,
-			final_position,
-			piece,
-			special_move,
-			castle_availability
-		);
-	} else if piece.piece_type() == &PieceType::Pawn {
-		return determine_pawn_move(
-			entity,
-			initial_position,
-			final_position,
-			piece,
-			move_tracker,
-			special_move,
-			en_passant_tracker,
-			&square_state
-		);
-	} else {
-		use SquareState::*;
-		let move_type_opt = match *square_state {
-			Vacant => Some(MoveType::Move),
-			Opposing(captured) => Some(MoveType::Capture { captured }),
-			Friendly => None
-		};
+	// Handle move type
+	let move_type = determine_move_type(
+		final_position,
+		piece,
+		move_tracker,
+		special_move,
+		castle_availability,
+		en_passant_tracker,
+		square_state
+	)?;
 
-		return Some(MoveInfo {
-			entity,
-			piece: *piece,
-			initial_position: *initial_position,
-			final_position: *final_position,
-			move_type: move_type_opt?,
-			promoted_to: None,
-			is_check: false,
-			is_checkmate: false,
-			draw_offered: false
-		});
-	}
+	// Handle promotion
+	let promoted_to = determine_promoted_to(final_position, piece);
+
+	// Handle check
+
+	// Handle checkmate
+
+	return Some(MoveInfo {
+		entity,
+		piece: *piece,
+		initial_position: *initial_position,
+		final_position: *final_position,
+		move_type,
+		promoted_to,
+		is_check: false,
+		is_checkmate: false,
+		draw_offered: false
+	});
 }
 
-fn determine_pawn_move(
-	entity: Entity,
-	initial_position: &Position,
+fn determine_move_type(
 	final_position: &Position,
 	piece: &Piece,
 	move_tracker: &MoveTracker,
 	special_move: &MovementType,
+	castle_availability: &CastleAvailability,
 	en_passant_tracker: &EnPassantState,
 	square_state: &SquareState
-) -> Option<MoveInfo> {
-	if piece.piece_type() != &PieceType::Pawn {
-		return None;
-	}
-
-	use EnPassantState::*;
+) -> Option<MoveType> {
 	use MovementType::*;
+	use PieceType::*;
 	use SquareState::*;
-	let move_type = match (square_state, special_move) {
-		(Vacant, PawnMove) => Some(MoveType::Move),
-		(Vacant, PawnFirstMove) => match move_tracker.has_moved() {
+	match (piece.piece_type(), special_move, square_state) {
+		// Handle Pawn moves
+		(Pawn, PawnMove, Vacant) => Some(MoveType::Move),
+		(Pawn, PawnFirstMove, Vacant) => match move_tracker.has_moved() {
 			true => None,
 			false => Some(MoveType::FirstMove)
 		},
-		(Vacant, EnPassantCapture) => match en_passant_tracker {
-			&Unavailable => None,
-			&Available { position, captured } => {
+		(Pawn, EnPassantCapture, Vacant) => match en_passant_tracker {
+			&EnPassantState::Unavailable => None,
+			&EnPassantState::Available { position, captured } => {
 				match &position == final_position {
 					true => Some(MoveType::CaptureEnPassant { captured }),
 					false => None
 				}
+			},
+		},
+		(Pawn, PawnCapture, Opposing(captured)) => Some(MoveType::Capture {
+			captured: *captured
+		}),
+		// Handle King moves
+		(King, CastleKingside, _) => match piece.piece_color() {
+			PieceColor::White => match castle_availability.white_kingside {
+				Some(_) => Some(MoveType::Castle(CastleType::WK)),
+				None => None
+			},
+			PieceColor::Black => match castle_availability.black_kingside {
+				Some(_) => Some(MoveType::Castle(CastleType::BK)),
+				None => None
 			}
 		},
-		(&Opposing(captured), PawnCapture) => {
-			Some(MoveType::Capture { captured })
+		(King, CastleQueenside, _) => match piece.piece_color() {
+			PieceColor::White => match castle_availability.white_queenside {
+				Some(_) => Some(MoveType::Castle(CastleType::WQ)),
+				None => None
+			},
+			PieceColor::Black => match castle_availability.black_queenside {
+				Some(_) => Some(MoveType::Castle(CastleType::BQ)),
+				None => None
+			}
 		},
-		(..) => None
-	}?;
-
-	return Some(MoveInfo {
-		entity,
-		piece: *piece,
-		initial_position: *initial_position,
-		final_position: *final_position,
-		move_type,
-		promoted_to: None,
-		is_check: false,
-		is_checkmate: false,
-		draw_offered: false
-	});
+		// Handle other moves
+		(_, Move, Vacant) => Some(MoveType::Move),
+		(_, Move, &Opposing(captured)) => Some(MoveType::Capture { captured }),
+		(_, Move, Friendly) => None,
+		_ => None
+	}
 }
 
-fn determine_castle_move(
-	entity: Entity,
-	initial_position: &Position,
+fn determine_promoted_to(
 	final_position: &Position,
-	piece: &Piece,
-	special_move: &MovementType,
-	castle_availability: &CastleAvailability
-) -> Option<MoveInfo> {
-	if piece.piece_type() != &PieceType::King {
+	piece: &Piece
+) -> Option<Piece> {
+	if piece.piece_type() != &PieceType::Pawn {
 		return None;
 	}
 
-	use MovementType::*;
+	// TODO: don't default to queen
 	use PieceColor::*;
-	let move_type = match (special_move, piece.piece_color()) {
-		(CastleKingside, White) => match castle_availability.white_kingside {
-			Some(_) => MoveType::Castle(CastleType::WK),
-			None => return None
+	match piece.piece_color() {
+		White => match final_position.rank() == &WHITE_PAWN_PROMOTION_RANK {
+			true => Some(Piece::WHITE_QUEEN),
+			false => None
 		},
-		(CastleKingside, Black) => match castle_availability.black_kingside {
-			Some(_) => MoveType::Castle(CastleType::BK),
-			None => return None
-		},
-		(CastleQueenside, White) => match castle_availability.white_queenside {
-			Some(_) => MoveType::Castle(CastleType::WQ),
-			None => return None
-		},
-		(CastleQueenside, Black) => match castle_availability.black_queenside {
-			Some(_) => MoveType::Castle(CastleType::BQ),
-			None => return None
-		},
-		_ => return None
-	};
-
-	return Some(MoveInfo {
-		entity,
-		piece: *piece,
-		initial_position: *initial_position,
-		final_position: *final_position,
-		move_type,
-		promoted_to: None,
-		is_check: false,
-		is_checkmate: false,
-		draw_offered: false
-	});
+		Black => match final_position.rank() == &BLACK_PAWN_PROMOTION_RANK {
+			true => Some(Piece::BLACK_QUEEN),
+			false => None
+		}
+	}
 }
