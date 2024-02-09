@@ -3,7 +3,7 @@ use bevy::log as bevy_log;
 const LOGS: [&str; 8] = [
 	"info",
 	// my stuff
-	"bevy_sandbox=info",
+	"bevy_sandbox=debug",
 	// wgpu stuff
 	"wgpu_core=warn",
 	"wgpu_hal=warn",

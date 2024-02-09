@@ -1,11 +1,9 @@
-mod color;
 mod movement;
 mod piece_type;
 mod selection;
 mod spawn;
 
 use bevy::prelude::*;
-pub use color::PieceColor;
 pub use movement::{
 	MovePieceToBoardPosition, MovementType, PieceMovementBehavior
 };
@@ -19,13 +17,14 @@ use self::{
 	movement::PieceMovementPlugin, selection::PieceSelectPlugin,
 	spawn::SpawnPiecePlugin
 };
+use super::team::TeamColor;
 use crate::game::{position::Position, resources::Theme};
 
 macro_rules! chess_pieces {
 	($($name:ident, $color:ident, $piece_type:ident);*) => {
 		$(
 			pub const $name: Piece = Piece {
-				color:	  PieceColor::$color,
+				color:	  TeamColor::$color,
 				piece_type: PieceType::$piece_type
 			};
 		)*
@@ -46,7 +45,7 @@ impl Plugin for PiecesPlugin {
 /// A component that represents a chess piece
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece {
-	color:      PieceColor,
+	color:      TeamColor,
 	piece_type: PieceType
 }
 
@@ -74,27 +73,31 @@ impl Piece {
 	};
 
 	chess_pieces!(
-		WHITE_KING, WHITE, KING;
-		WHITE_QUEEN, WHITE, QUEEN;
-		WHITE_ROOK, WHITE, ROOK;
-		WHITE_BISHOP, WHITE, BISHOP;
-		WHITE_KNIGHT, WHITE, KNIGHT;
-		WHITE_PAWN, WHITE, PAWN;
-		BLACK_KING, BLACK, KING;
-		BLACK_QUEEN, BLACK, QUEEN;
-		BLACK_ROOK, BLACK, ROOK;
-		BLACK_BISHOP, BLACK, BISHOP;
-		BLACK_KNIGHT, BLACK, KNIGHT;
-		BLACK_PAWN, BLACK, PAWN
+		WHITE_KING, White, KING;
+		WHITE_QUEEN, White, QUEEN;
+		WHITE_ROOK, White, ROOK;
+		WHITE_BISHOP, White, BISHOP;
+		WHITE_KNIGHT, White, KNIGHT;
+		WHITE_PAWN, White, PAWN;
+		BLACK_KING, Black, KING;
+		BLACK_QUEEN, Black, QUEEN;
+		BLACK_ROOK, Black, ROOK;
+		BLACK_BISHOP, Black, BISHOP;
+		BLACK_KNIGHT, Black, KNIGHT;
+		BLACK_PAWN, Black, PAWN
 	);
 
-	pub fn piece_color(&self) -> &PieceColor { &self.color }
+	pub fn new(color: TeamColor, piece_type: PieceType) -> Piece {
+		Piece { color, piece_type }
+	}
+
+	pub fn piece_color(&self) -> &TeamColor { &self.color }
 
 	pub fn piece_type(&self) -> &PieceType { &self.piece_type }
 
 	pub fn symbol(&self) -> &'static str {
-		use PieceColor::*;
 		use PieceType::*;
+		use TeamColor::*;
 		match (&self.color, &self.piece_type) {
 			(White, King) => "♔",
 			(White, Queen) => "♕",
@@ -122,7 +125,7 @@ impl Piece {
 		materials: &mut ResMut<Assets<StandardMaterial>>,
 		theme: &Res<Theme>
 	) -> Handle<StandardMaterial> {
-		let base_color: Color = self.color.color(theme);
+		let base_color: Color = self.color.piece_color(theme);
 		materials.add(StandardMaterial {
 			base_color,
 			..default()

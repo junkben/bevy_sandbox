@@ -11,11 +11,13 @@ mod move_info;
 mod move_tracker;
 mod physics;
 mod piece;
+mod player;
 mod position;
 pub mod resources;
 mod settings;
 mod square;
 mod start;
+mod team;
 mod turn;
 
 use bevy::prelude::*;

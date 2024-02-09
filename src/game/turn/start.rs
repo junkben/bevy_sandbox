@@ -4,13 +4,12 @@ use bevy_panorbit_camera::PanOrbitCamera;
 use super::TurnState;
 use crate::game::{
 	camera::SetCameraTargetAlpha,
-	piece::PieceColor,
 	resources::{
 		ActiveColor, CalculateAvailableMoves, CalculateAvailableMovesDone,
 		CheckCastleAvailability, CheckCastleAvailabilityDone, CheckEnPassant,
-		CheckEnPassantDone, UpdateAttackedPositions,
-		UpdateAttackedPositionsDone
+		CheckEnPassantDone
 	},
+	team::TeamColor,
 	GameSettings
 };
 
@@ -33,7 +32,6 @@ impl Plugin for TurnStartPlugin {
 					handle_event_check_en_passant_done,
 					handle_event_check_available_moves_done,
 					handle_event_check_castle_availability_done,
-					handle_event_update_attacked_positions_done,
 					handle_event_move_camera
 				)
 			);
@@ -46,8 +44,7 @@ pub struct TurnStartChecklist {
 	moved_camera:              bool,
 	check_castle_availability: bool,
 	check_en_passant:          bool,
-	calculated_moves:          bool,
-	update_attacked_positions: bool
+	calculated_moves:          bool
 }
 
 impl TurnStartChecklist {
@@ -56,7 +53,6 @@ impl TurnStartChecklist {
 			&& self.check_castle_availability
 			&& self.check_en_passant
 			&& self.calculated_moves
-			&& self.update_attacked_positions
 	}
 
 	fn reset(&mut self) {
@@ -64,7 +60,6 @@ impl TurnStartChecklist {
 		self.check_castle_availability = false;
 		self.check_en_passant = false;
 		self.calculated_moves = false;
-		self.update_attacked_positions = false;
 	}
 }
 
@@ -101,14 +96,12 @@ fn handle_event_check_en_passant_done(
 fn handle_event_check_available_moves_done(
 	mut er_moves: EventReader<CalculateAvailableMovesDone>,
 	mut ew_check: EventWriter<CheckCastleAvailability>,
-	mut ew_attacked: EventWriter<UpdateAttackedPositions>,
 	mut ew_move_camera: EventWriter<MoveCamera>,
 	mut checklist: ResMut<TurnStartChecklist>
 ) {
 	if let Some(_) = er_moves.read().last() {
 		checklist.calculated_moves = true;
 		ew_check.send(CheckCastleAvailability);
-		ew_attacked.send(UpdateAttackedPositions);
 		ew_move_camera.send(MoveCamera);
 	}
 }
@@ -119,15 +112,6 @@ fn handle_event_check_castle_availability_done(
 ) {
 	if let Some(_) = er_castle_done.read().last() {
 		checklist.check_castle_availability = true;
-	}
-}
-
-fn handle_event_update_attacked_positions_done(
-	mut er_attacked_done: EventReader<UpdateAttackedPositionsDone>,
-	mut checklist: ResMut<TurnStartChecklist>
-) {
-	if let Some(_) = er_attacked_done.read().last() {
-		checklist.update_attacked_positions = true;
 	}
 }
 
@@ -173,7 +157,7 @@ fn handle_event_move_camera(
 				return;
 			};
 
-			use PieceColor::*;
+			use TeamColor::*;
 			let target_alpha = match active_color.0 {
 				White => WHITE_ALPHA,
 				Black => BLACK_ALPHA

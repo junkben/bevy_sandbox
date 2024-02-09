@@ -2,15 +2,14 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use super::{CastleAvailability, EnPassantState};
+use super::{AttackedPositions, CastleAvailability, EnPassantState};
 use crate::game::{
 	move_info::MoveInfo,
 	move_tracker::MoveTracker,
-	piece::{
-		MovementType, Piece, PieceColor, PieceMovementBehavior, PieceType
-	},
+	piece::{MovementType, Piece, PieceMovementBehavior, PieceType},
 	position::*,
 	resources::CastleType,
+	team::TeamColor,
 	MoveType
 };
 
@@ -53,19 +52,21 @@ fn handle_event(
 
 	info!("Calculating available moves...");
 
-	let available_moves = calculate_available_moves(
+	let (am, ap) = calculate_available_moves_and_attacked_positions(
 		res_castle_availability.as_ref(),
 		res_en_passant_tracker.as_ref(),
 		query_piece,
 		query_opposing_piece
 	);
 
-	commands.insert_resource(available_moves);
+	commands.insert_resource(am);
+	debug!("{:?}", ap);
+	commands.insert_resource(ap);
 	ew_calculate_done.send(CalculateAvailableMovesDone)
 }
 
 /// A component that tracks the available positions an entity can move to
-#[derive(Resource, Default, Debug, Clone)]
+#[derive(Component, Default, Debug, Clone)]
 pub struct AvailableMoves(pub HashMap<Entity, Vec<MoveInfo>>);
 
 impl std::fmt::Display for AvailableMoves {
@@ -131,53 +132,38 @@ pub enum SquareState {
 	Friendly
 }
 
-fn calculate_available_moves(
+fn calculate_available_moves_and_attacked_positions(
 	castle_availability: &CastleAvailability,
 	en_passant_tracker: &EnPassantState,
 	mut query_piece: Query<(Entity, &Piece, &Position, &MoveTracker)>,
 	query_opposing_piece: Query<(Entity, &Position, &Piece)>
-) -> AvailableMoves {
+) -> (AvailableMoves, AttackedPositions) {
 	let mut am = AvailableMoves::default();
+	let mut ap = AttackedPositions::default();
 
 	for (entity, piece, initial_position, move_tracker) in
 		query_piece.iter_mut()
 	{
-		let moves = calculate_moves_for_piece(
-			entity,
-			piece,
-			initial_position,
-			move_tracker,
-			castle_availability,
-			en_passant_tracker,
-			&query_opposing_piece
-		);
+		let (moves, attacked_positions) =
+			calculate_moves_and_attack_positions_for_piece(
+				entity,
+				piece,
+				initial_position,
+				move_tracker,
+				castle_availability,
+				en_passant_tracker,
+				&query_opposing_piece
+			);
 		am.0.insert(entity, moves);
-	}
-
-	am
-}
-
-fn determine_square_state(
-	piece: &Piece,
-	initial_position: &Position,
-	final_position: &Position,
-	query_other_piece: &Query<(Entity, &Position, &Piece)>
-) -> SquareState {
-	for (o_entity, o_position, o_piece) in query_other_piece.iter() {
-		if o_position != final_position || o_position == initial_position {
-			continue;
+		for position in attacked_positions {
+			ap.0.insert(position, true);
 		}
-
-		return match piece.piece_color() == o_piece.piece_color() {
-			true => SquareState::Friendly,
-			false => SquareState::Opposing(o_entity)
-		};
 	}
 
-	SquareState::Vacant
+	(am, ap)
 }
 
-fn calculate_moves_for_piece(
+fn calculate_moves_and_attack_positions_for_piece(
 	entity: Entity,
 	piece: &Piece,
 	initial_position: &Position,
@@ -185,8 +171,9 @@ fn calculate_moves_for_piece(
 	castle_availability: &CastleAvailability,
 	en_passant_tracker: &EnPassantState,
 	query_opposing_piece: &Query<(Entity, &Position, &Piece)>
-) -> Vec<MoveInfo> {
+) -> (Vec<MoveInfo>, Vec<Position>) {
 	let mut moves: Vec<MoveInfo> = Vec::new();
+	let mut attacked_positions: Vec<Position> = Vec::new();
 
 	// Gather piece default movement patterns
 	use PieceType::*;
@@ -248,6 +235,11 @@ fn calculate_moves_for_piece(
 
 				// Add move to possible moves
 				moves.push(move_info);
+
+				// Add attacked positions
+				if move_info.is_attack() {
+					attacked_positions.push(move_info.final_position)
+				}
 			} else {
 				break;
 			}
@@ -255,7 +247,27 @@ fn calculate_moves_for_piece(
 	} // end for
 
 	trace!(?piece, ?initial_position, ?moves);
-	moves
+	(moves, attacked_positions)
+}
+
+fn determine_square_state(
+	piece: &Piece,
+	initial_position: &Position,
+	final_position: &Position,
+	query_other_piece: &Query<(Entity, &Position, &Piece)>
+) -> SquareState {
+	for (o_entity, o_position, o_piece) in query_other_piece.iter() {
+		if o_position != final_position || o_position == initial_position {
+			continue;
+		}
+
+		return match piece.piece_color() == o_piece.piece_color() {
+			true => SquareState::Friendly,
+			false => SquareState::Opposing(o_entity)
+		};
+	}
+
+	SquareState::Vacant
 }
 
 fn determine_move(
@@ -283,10 +295,7 @@ fn determine_move(
 	// Handle promotion
 	let promoted_to = determine_promoted_to(final_position, piece);
 
-	// Handle check
-
-	// Handle checkmate
-
+	// Return move
 	return Some(MoveInfo {
 		entity,
 		piece: *piece,
@@ -333,21 +342,21 @@ fn determine_move_type(
 		}),
 		// Handle King moves
 		(King, CastleKingside, _) => match piece.piece_color() {
-			PieceColor::White => match castle_availability.white_kingside {
+			TeamColor::White => match castle_availability.white_kingside {
 				Some(_) => Some(MoveType::Castle(CastleType::WK)),
 				None => None
 			},
-			PieceColor::Black => match castle_availability.black_kingside {
+			TeamColor::Black => match castle_availability.black_kingside {
 				Some(_) => Some(MoveType::Castle(CastleType::BK)),
 				None => None
 			}
 		},
 		(King, CastleQueenside, _) => match piece.piece_color() {
-			PieceColor::White => match castle_availability.white_queenside {
+			TeamColor::White => match castle_availability.white_queenside {
 				Some(_) => Some(MoveType::Castle(CastleType::WQ)),
 				None => None
 			},
-			PieceColor::Black => match castle_availability.black_queenside {
+			TeamColor::Black => match castle_availability.black_queenside {
 				Some(_) => Some(MoveType::Castle(CastleType::BQ)),
 				None => None
 			}
@@ -369,15 +378,11 @@ fn determine_promoted_to(
 	}
 
 	// TODO: don't default to queen
-	use PieceColor::*;
-	match piece.piece_color() {
-		White => match final_position.rank() == &WHITE_PAWN_PROMOTION_RANK {
-			true => Some(Piece::WHITE_QUEEN),
-			false => None
-		},
-		Black => match final_position.rank() == &BLACK_PAWN_PROMOTION_RANK {
-			true => Some(Piece::BLACK_QUEEN),
-			false => None
-		}
+	match piece
+		.piece_color()
+		.is_at_promotion_rank(final_position.rank())
+	{
+		true => Some(Piece::new(*piece.piece_color(), PieceType::QUEEN)),
+		false => None
 	}
 }

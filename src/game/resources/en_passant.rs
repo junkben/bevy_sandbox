@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use super::MoveHistory;
 use crate::game::{
-	piece::PieceColor,
 	position::{File, Position},
+	team::TeamColor,
 	MoveType
 };
 
@@ -72,7 +72,7 @@ fn determine_en_passant_state(move_history: &MoveHistory) -> EnPassantState {
 
 	// Determine the position that needs to be moved to to capture the pawn
 	use File::*;
-	use PieceColor::*;
+	use TeamColor::*;
 	EnPassantState::Available {
 		position: match (
 			latest_move.piece.piece_color(),

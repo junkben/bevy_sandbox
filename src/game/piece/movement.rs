@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::game::{
 	move_tracker::MoveTracker, physics::TranslationalMotionStart,
-	position::Position
+	position::Position, team::TeamColor
 };
 
 pub struct PieceMovementPlugin;
@@ -105,10 +105,10 @@ impl PieceMovementBehavior {
 	}
 
 	/// Pawn movement is complicated
-	pub fn pawn(color: PieceColor) -> PieceMovementBehavior {
+	pub fn pawn(color: TeamColor) -> PieceMovementBehavior {
 		let (diag_w, neut, diag_e) = match color {
-			PieceColor::White => (NW, N, NE),
-			PieceColor::Black => (SW, S, SE)
+			TeamColor::White => (NW, N, NE),
+			TeamColor::Black => (SW, S, SE)
 		};
 
 		PieceMovementBehavior(vec![
@@ -193,7 +193,7 @@ enum Direction {
 
 use Direction::*;
 
-use super::{Piece, PieceColor};
+use super::Piece;
 
 impl Direction {
 	pub const fn vec3(&self) -> Vec3 {

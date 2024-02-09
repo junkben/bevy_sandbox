@@ -84,7 +84,10 @@ impl MoveInfo {
 	pub fn is_attack(&self) -> bool {
 		use MoveType::*;
 		match self.move_type {
-			Move => true,
+			Move => match self.piece.piece_type() {
+				&PieceType::Pawn => false,
+				_ => true
+			},
 			FirstMove => false,
 			Capture { .. } => true,
 			CaptureEnPassant { .. } => true,

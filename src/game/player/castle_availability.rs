@@ -65,27 +65,19 @@ pub struct CastleEntities {
 /// Tracks what players can castle and to what side
 #[derive(Resource, Debug)]
 pub struct CastleAvailability {
-	pub white_kingside:  Option<CastleEntities>,
-	pub white_queenside: Option<CastleEntities>,
-	pub black_kingside:  Option<CastleEntities>,
-	pub black_queenside: Option<CastleEntities>
+	pub kingside:  Option<CastleEntities>,
+	pub queenside: Option<CastleEntities>,
 }
 
 impl CastleAvailability {}
 
 impl std::fmt::Display for CastleAvailability {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		if self.white_kingside.is_some() {
+		if self.kingside.is_some() {
 			write!(f, "K")?;
 		}
-		if self.white_queenside.is_some() {
+		if self.queenside.is_some() {
 			write!(f, "Q")?;
-		}
-		if self.black_kingside.is_some() {
-			write!(f, "k")?;
-		}
-		if self.black_queenside.is_some() {
-			write!(f, "q")?;
 		}
 
 		Ok(())
