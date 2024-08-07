@@ -7,5 +7,14 @@
     "files.eol": "\n",
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 5000,
-    "rust-analyzer.showUnlinkedFileNotification": false
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "evenBetterToml.formatter.allowedBlankLines": 1,
+    "evenBetterToml.formatter.arrayAutoExpand": true,
+    "evenBetterToml.formatter.arrayTrailingComma": true,
+    "evenBetterToml.formatter.columnWidth": 75,
+    "evenBetterToml.formatter.indentEntries": true,
+    "evenBetterToml.formatter.trailingNewline": true,
+    "evenBetterToml.formatter.reorderArrays": false,
+    "evenBetterToml.formatter.reorderKeys": true,
+    "evenBetterToml.formatter.indentTables": true
 }

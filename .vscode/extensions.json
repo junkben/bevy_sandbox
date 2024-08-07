@@ -2,9 +2,8 @@
     "recommendations": [
         "formulahendry.code-runner",
         "vadimcn.vscode-lldb",
-        "serayuzgur.crates",
+        "fill-labs.dependi",
         "tamasfe.even-better-toml",
-        "rust-lang.rust-analyzer",
-        "mutantdino.resourcemonitor"
+        "rust-lang.rust-analyzer"
     ]
 }
